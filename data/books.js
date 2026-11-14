@@ -242,43 +242,47 @@
       },
       pages: [
         {
-          title: { en: 'Meet Eagle', es: '' },
+          title: { en: 'Meet Eagle', es: 'Conoce a Eagle' },
           text: {
             en: 'On July 16, 1969, a very big rocket named Saturn V launched from Florida carrying three astronauts: Neil Armstrong, Michael Collins, and Buzz Aldrin. Their mission, Apollo 11, had a goal that no one had ever achieved: to land humans on the Moon and bring them back to Earth safely.\n\n' +
                 'They traveled inside a spaceship called Columbia, and attached to it was a smaller, weird-looking vessel called Eagle, the lunar module. Eagle had been built to perform one special job, which was to carry two astronauts from Columbia down to the Moon and then back up. This vessel was never meant to touch Earth\'s sky or return home. It had been made for the Moon.\n\n' +
                 'Eagle had two parts stacked on top of each other. The bottom half had four long legs with round feet, almost looking like an insect, and it also carried the tools and science experiments that the astronauts were going to use on the Moon. The top half was the cabin where the astronauts would live and work, and it had its own smaller engine to launch them back into space.\n\n' +
                 'The cabin was tiny, about the size of a small closet for two people, and had no seats at all, to save weight. Eagle looked fragile, almost like it was made of foil, but what no one would ever imagine was that a small weird-looking vessel like Eagle was about to make history.',
-            es: ''
+            es: 'El 16 de julio de 1969, un cohete de gran tamaño llamado Saturno V despegó desde Florida con tres astronautas a bordo: Neil Armstrong, Michael Collins y Buzz Aldrin. Su misión, el Apolo 11, tenía un objetivo que nadie había logrado jamás: llevar seres humanos a la Luna y traerlos de vuelta a la Tierra sanos y salvos.\n\n' +
+                'Viajaban en una nave espacial llamada Columbia, a la cual estaba acoplado un vehículo más pequeño de aspecto peculiar: Eagle, el módulo lunar. Eagle fue construido para una tarea específica: transportar a dos astronautas desde el Columbia hasta la superficie lunar y, posteriormente, devolverlos a la nave principal. Este vehículo nunca fue diseñado para entrar en la atmósfera terrestre ni para regresar a la Tierra; fue creado exclusivamente para la Luna.\n\n' +
+                'El Eagle constaba de dos secciones superpuestas. La parte inferior contaba con cuatro patas largas terminadas en bases circulares, lo que le daba un aspecto similar al de un insecto, y albergaba las herramientas y los experimentos científicos que los astronautas utilizarían en la Luna. La parte superior era la cabina, donde los astronautas vivirían y trabajarían; esta disponía de su propio motor, más pequeño, destinado a impulsarlos de regreso al espacio.\n\n' +
+                'La cabina era diminuta, aproximadamente del tamaño de un armario pequeño para dos personas, y carecía de asientos, con el fin de ahorrar peso. Eagle parecía frágil, casi como si estuviera hecho de papel de aluminio; sin embargo, nadie habría imaginado que una nave tan pequeña y de aspecto tan extraño estaba a punto de hacer historia.'
           }
         },
         {
-          title: { en: 'The Landing', es: '' },
+          title: { en: 'The Landing', es: 'El aterrizaje' },
           text: {
             en: 'On July 20, 1969, after three days of traveling, the spacecraft finally reached the Moon. Then, Armstrong and Aldrin got into Eagle, and Eagle detached itself from Columbia. Collins stayed in Columbia, orbiting the Moon, while Armstrong and Aldrin flew Eagle down. It took the engine about 12 minutes to slow them down. The landing wasn\'t easy: alarms started going off on Eagle\'s computer because it was overloaded with work. As they got closer to the ground, Armstrong saw that the computer was taking them toward an area full of rocks, so he took control and flew Eagle to a safe spot. They managed to land in a flat, dark area called the Sea of Tranquility. Then, Armstrong sent his famous message back to Earth: "Houston, Tranquility Base here. The Eagle has landed." This meant that for the first time ever, humans had landed in another world.',
-            es: ''
+            es: 'El 20 de julio de 1969, tras tres días de viaje, la nave espacial llegó finalmente a la Luna. Entonces, Armstrong y Aldrin subieron al Eagle, el cual se separó del Columbia. Collins permaneció en el Columbia, orbitando la Luna, mientras Armstrong y Aldrin descendían a bordo del Eagle. El motor tardó unos 12 minutos en reducir su velocidad. El aterrizaje no fue sencillo: empezaron a sonar alarmas en la computadora del Eagle debido a una sobrecarga de trabajo. A medida que se acercaban a la superficie, Armstrong observó que la computadora los dirigía hacia una zona llena de rocas, por lo que tomó el control y dirigió el Eagle hacia un lugar seguro. Lograron aterrizar en una zona plana y oscura llamada Mar de la Tranquilidad. Luego, Armstrong envió su famoso mensaje a la Tierra: «Houston, aquí Base Tranquilidad. El Eagle ha aterrizado». Esto significaba que, por primera vez en la historia, los seres humanos habían aterrizado en otro mundo.'
           }
         },
         {
-          title: { en: 'Footprints', es: '' },
+          title: { en: 'Footprints', es: 'Huellas' },
           text: {
             en: 'A few hours later, Armstrong climbed down Eagle\'s ladder, and when he stepped onto the Moon, he said, "That\'s one small step for man, one giant leap for mankind." Aldrin followed him and described the empty landscape as "magnificent desolation." On one of Eagle\'s legs there was a plaque, which read: "We came in peace for all mankind." They spent about two and a half hours outside, and they planted a specially designed flag. It had a horizontal bar along the top that kept the nylon stretched out, so it looked like it was flying. They also talked by phone with the U.S. president Richard Nixon and collected around 22 kilograms of Moon rocks and soil. Before going back inside Eagle, they set up a small science station and left a packet of memorial items on the ground.',
-            es: ''
+            es: 'Unas horas más tarde, Armstrong bajó por la escalerilla del Eagle y, al pisar la Luna, pronunció estas palabras: «Es un pequeño paso para el hombre, pero un gran salto para la humanidad». Aldrin lo siguió y describió el paisaje desolado como una «magnífica desolación». En una de las patas del Eagle había una placa que decía: «Vinimos en paz en nombre de toda la humanidad». Pasaron cerca de dos horas y media en el exterior y colocaron una bandera diseñada especialmente para la ocasión; contaba con una barra horizontal en la parte superior que mantenía el nailon extendido, dando la impresión de que la bandera estaba ondeando. También hablaron por teléfono con el presidente de los Estados Unidos, Richard Nixon, y recolectaron alrededor de 22 kilogramos de rocas y suelo lunar. Antes de regresar al interior del Eagle, instalaron una pequeña estación científica y dejaron en el suelo un paquete con objetos conmemorativos.'
           }
         },
         {
-          title: { en: 'Goodbye', es: '' },
+          title: { en: 'Goodbye', es: 'La despedida' },
           text: {
             en: 'After almost an entire day, it was time for them to leave the Moon. The top half of Eagle launched into space, and the bottom half, which made Eagle look like an insect, remained on the Moon.\n\n' +
                 'It\'s still there today, like a launch pad no one will ever use again. Eagle reconnected with Columbia, and Armstrong and Aldrin got back into the big spaceship with Collins. Then they released Eagle into orbit around the Moon, by itself and empty, its mission successfully completed. The three astronauts flew back to Earth as icons, and Eagle? It stayed behind.',
-            es: ''
+            es: 'Tras casi un día entero, llegó el momento de abandonar la Luna. La mitad superior del Eagle despegó hacia el espacio, mientras que la mitad inferior —que le daba al Eagle un aspecto similar al de un insecto— permaneció en la Luna. Todavía está allí hoy, como una plataforma de lanzamiento que nadie volverá a utilizar jamás. El Eagle se reencontró con el Columbia, y Armstrong y Aldrin regresaron a la gran nave espacial junto a Collins. Luego, dejaron al Eagle en órbita alrededor de la Luna, solo y vacío, con su misión cumplida con éxito. Los tres astronautas regresaron a la Tierra convertidos en iconos; ¿y el Eagle? Se quedó atrás.'
           }
         },
         {
-          title: { en: 'Lost, but Not Forgotten', es: '' },
+          title: { en: 'Lost, but Not Forgotten', es: 'Perdido, pero no olvidado' },
           text: {
             en: 'What happened to Eagle after that? Nobody is one hundred percent sure about this. NASA believed it slowly lost height and crashed somewhere on the Moon after a few months, but no one ever saw it fall, and no one has ever found its crash site. Some researchers have suggested it could still be orbiting the Moon today, though this has not been confirmed. The science station left by Armstrong and Aldrin didn\'t last long either; it ran on sunlight and only worked during the day. On August 27, 1969, it stopped answering and went silent.\n\n' +
                 'Not everything was lost, though. The mirror the astronauts left behind needs no power, and scientists still shoot lasers at it. So, Eagle is lost and its science station is quiet, but the story of the weird-looking vessel that carried humans\' first steps on another world will never be forgotten.',
-            es: ''
+            es: '¿Qué le ocurrió al Eagle después de aquello? Nadie está totalmente seguro. La NASA creía que fue perdiendo altura poco a poco hasta estrellarse en algún lugar de la Luna al cabo de unos meses; sin embargo, nadie presenció su caída y jamás se ha hallado el lugar del impacto. Algunos investigadores han sugerido que podría seguir orbitando la Luna hoy en día, aunque esto no se ha confirmado. La estación científica que dejaron Armstrong y Aldrin tampoco duró mucho: funcionaba con energía solar, por lo que solo estaba operativa durante el día. El 27 de agosto de 1969, dejó de responder y quedó en silencio.\n\n' +
+                'No obstante, no todo se perdió. El espejo que dejaron los astronautas no requiere energía, y los científicos siguen apuntándole con láseres. Así pues, aunque el Eagle se ha perdido y su estación científica permanece en silencio, la historia de aquella nave de aspecto peculiar —que transportó a los seres humanos en sus primeros pasos sobre otro mundo— jamás será olvidada.'
           }
         }
       ],
@@ -330,43 +334,47 @@
       },
       pages: [
         {
-          title: { en: 'The Twins', es: '' },
+          title: { en: 'The Twins', es: 'Los gemelos' },
           text: {
             en: 'On September 10, 2011, a rocket launched from Florida, carrying two identical spacecraft. They were like twins, both built to work together as a team. Their mission was called GRAIL, and their main job was to study the Moon\'s gravity. In the beginning, the twins had no names, so NASA held a contest for students. A class of fourth-graders in Montana won, and they gave the twins the names of Ebb and Flow, just like ocean tides, which are caused by the Moon\'s gravity. Beautiful meaning, right?',
-            es: ''
+            es: 'El 10 de septiembre de 2011, un cohete despegó desde Florida llevando a bordo dos naves espaciales idénticas. Eran como gemelas, construidas para trabajar juntas como un equipo. Su misión se llamaba GRAIL y su objetivo principal era estudiar la gravedad de la Luna. Al principio, las gemelas no tenían nombre, así que la NASA organizó un concurso para estudiantes. Una clase de cuarto grado en Montana resultó ganadora y bautizó a las naves como Ebb y Flow, haciendo referencia a las mareas oceánicas, las cuales son provocadas por la gravedad de la Luna. Un significado precioso, ¿verdad?'
           }
         },
         {
-          title: { en: 'The Long Trip', es: '' },
+          title: { en: 'The Long Trip', es: 'El largo viaje' },
           text: {
             en: 'It took the Apollo astronauts three days to reach the Moon, but the twins took the slow way to save fuel, which made the trip take more than three months. Ebb arrived before Flow, on New Year\'s Eve 2011. Ebb waited alone for its twin, Flow, to arrive so they could work together as the team they were. How sweet!\n\n' +
                 'Then, a day later, Flow finally arrived. Once they were both together, they lined up one behind the other and started orbiting the Moon, like two cars on a raceway.',
-            es: ''
+            es: 'A los astronautas del programa Apolo les tomó tres días llegar a la Luna, pero las gemelas optaron por una ruta más lenta para ahorrar combustible, lo que hizo que el viaje durara más de tres meses. Ebb llegó antes que Flow, en la víspera de Año Nuevo de 2011. Ebb esperó a solas a que llegara su gemela, Flow, para poder trabajar juntas como el equipo que eran. ¡Qué tierno!\n\n' +
+                'Un día después, Flow finalmente llegó. Una vez reunidas, se colocaron una detrás de la otra y comenzaron a orbitar la Luna, como dos coches en una pista de carreras.'
           }
         },
         {
-          title: { en: 'The Invisible Map', es: '' },
+          title: { en: 'The Invisible Map', es: 'El mapa invisible' },
           text: {
             en: 'The Moon\'s gravity isn\'t the same everywhere. Some areas have very heavy rocks hidden underground that pull a bit harder, and when the twins flew over those places, the distance between them changed by a tiny bit, smaller than the width of human hair. After measuring those changes for almost nine months, Ebb and Flow made the most detailed gravity map of the Moon to ever exist. This showed scientists that those heavy spots were created billions of years ago, when very big asteroids crashed into the Moon\'s surface.',
-            es: ''
+            es: 'La gravedad de la Luna no es igual en todas partes. En algunas zonas, hay rocas muy pesadas ocultas bajo la superficie que ejercen una mayor atracción; cuando las gemelas sobrevolaban estos lugares, la distancia entre ellas variaba ligeramente, en una medida menor al grosor de un cabello humano. Tras registrar estos cambios durante casi nueve meses, Ebb y Flow crearon el mapa de gravedad de la Luna más detallado que ha existido jamás. Esto reveló a los científicos que dichas zonas de mayor densidad se formaron hace miles de millones de años, cuando asteroides de gran tamaño impactaron contra la superficie lunar.'
           }
         },
         {
-          title: { en: 'Students in Space', es: '' },
+          title: { en: 'Students in Space', es: 'Estudiantes en el espacio' },
           text: {
             en: 'One very interesting fact about the twins is that they carried cameras called MoonKAM, and these allowed middle school students across the country to control them. The students chose places on the Moon, and the twins would take pictures for them.\n\n' +
                 'The program was run by Sally Ride\'s organization. You may be wondering: who is Sally Ride?\n\n' +
                 'Sally Ride was the first American woman in space, and she really wanted young people to develop a love for science. Sadly, she passed away in 2012, while the twins were still orbiting the Moon.',
-            es: ''
+            es: 'Un dato muy interesante sobre estas gemelas es que llevaban a bordo unas cámaras llamadas MoonKAM, las cuales permitían que estudiantes de secundaria de todo el país las controlaran. Los alumnos elegían lugares en la Luna y las gemelas tomaban fotografías para ellos. El programa estaba dirigido por la organización de Sally Ride. Quizás te preguntes: ¿quién es Sally Ride?\n\n' +
+                'Sally Ride fue la primera mujer estadounidense en el espacio, y deseaba profundamente que los jóvenes desarrollaran un amor por la ciencia. Lamentablemente, falleció en 2012, mientras los «gemelos» aún orbitaban la Luna.'
           }
         },
         {
-          title: { en: 'Together Until the End', es: '' },
+          title: { en: 'Together Until the End', es: 'Juntos hasta el final' },
           text: {
             en: 'By December 2012, the twins were already running out of fuel, and instead of just letting them crash anywhere, NASA chose a mountain near the Moon\'s north pole. On December 17, 2012, Ebb hit the mountain first, and then Flow followed just a few seconds later, right beside Ebb.\n\n' +
                 'NASA then named the crash site after Sally Ride, so the twins would rest in a place named after someone who believed that young people could reach the stars. In a way, the twins made that true: they connected young people with space.\n\n' +
                 'They stayed together until the very end.',
-            es: ''
+            es: 'Para diciembre de 2012, a los «gemelos» ya se les estaba agotando el combustible. En lugar de dejar que se estrellaran en cualquier lugar, la NASA eligió una montaña cerca del polo norte lunar. El 17 de diciembre de 2012, Ebb impactó primero contra la montaña, y unos segundos después le siguió Flow, justo al lado de Ebb.\n\n' +
+                'La NASA bautizó el lugar del impacto con el nombre de Sally Ride, de modo que los «gemelos» descansaran en un sitio que lleva el nombre de alguien que creía que los jóvenes podían alcanzar las estrellas. En cierto modo, los «gemelos» hicieron realidad esa idea: conectaron a los jóvenes con el espacio.\n\n' +
+                'Permanecieron juntos hasta el mismísimo final.'
           }
         }
       ],
@@ -416,41 +424,44 @@
       },
       pages: [
         {
-          title: { en: 'The Pair', es: '' },
+          title: { en: 'The Pair', es: 'El par' },
           text: {
             en: 'On August 20, 1975, a rocket launched from Florida carrying a new spacecraft called Viking 1. It was really two machines in one: an orbiter, which would orbit Mars from above, and a lander, which would go down to the surface. Together they had a big mission: to look for signs of life on Mars. Before launch there was a small surprise, and it was that the spacecraft that had to go first had a battery problem, so NASA decided to replace it with its twin, and the backup became Viking 1.',
-            es: ''
+            es: 'El 20 de agosto de 1975, un cohete despegó desde Florida transportando una nueva nave espacial llamada Viking 1. En realidad, se trataba de dos máquinas en una: un orbitador, que orbitaría Marte desde arriba, y un módulo de aterrizaje, que descendería hasta la superficie. Juntos tenían una gran misión: buscar señales de vida en Marte. Antes del lanzamiento surgió un pequeño imprevisto: la nave espacial que debía partir primero presentó un problema en su batería, por lo que la NASA decidió reemplazarla por su gemela, convirtiendo a la unidad de reserva en la Viking 1.'
           }
         },
         {
-          title: { en: 'A Change of Plans', es: '' },
+          title: { en: 'A Change of Plans', es: 'Un cambio de planes' },
           text: {
             en: 'After a long trip that was around ten months, Viking 1 finally reached Mars in June 1976. The orbiter started to take pictures of the spot where the lander was supposed to touch down, but the ground was way bumpier and more uneven than expected, and landing there could have destroyed the lander. So, scientists decided to use the new photos to pick a better spot: a smooth, wide place called Chryse Planitia, which means "Golden Plain."',
-            es: ''
+            es: 'Tras un largo viaje de unos diez meses, la Viking 1 llegó finalmente a Marte en junio de 1976. El orbitador comenzó a tomar fotografías del lugar donde estaba previsto que aterrizara el módulo; sin embargo, el terreno resultó ser mucho más irregular y accidentado de lo esperado, lo que habría puesto en peligro la integridad del módulo. Por ello, los científicos utilizaron las nuevas imágenes para seleccionar un lugar más adecuado: una zona amplia y llana llamada Chryse Planitia, que significa «llanura dorada».'
           }
         },
         {
-          title: { en: 'First Look at Mars', es: '' },
+          title: { en: 'First Look at Mars', es: 'Un primer vistazo a Marte' },
           text: {
             en: 'On July 20, 1976, the lander detached itself from the orbiter and fell through Mars\' thin air, testing it as it went down. It managed to land safely, becoming the first American spacecraft to ever land on Mars. Right away, it began to take photos of its new home: red dust and rocks. It was extremely cold there: −86 °C before sunrise and around −33 °C in the afternoon.\n\n' +
                 'For the first time ever, humans on Earth were able to see what it was like to stand on Mars.',
-            es: ''
+            es: 'El 20 de julio de 1976, el módulo de aterrizaje se separó del orbitador y descendió a través de la tenue atmósfera marciana, realizando mediciones durante su trayectoria. Logró aterrizar sin contratiempos, convirtiéndose en la primera nave espacial estadounidense en posarse sobre Marte. De inmediato, comenzó a capturar imágenes de su nuevo entorno: polvo rojo y rocas. Las temperaturas eran extremadamente bajas: −86 °C antes del amanecer y alrededor de −33 °C durante la tarde.\n\n' +
+                'Por primera vez en la historia, los seres humanos en la Tierra pudieron ver cómo era estar en la superficie de Marte.'
           }
         },
         {
-          title: { en: 'Looking for Life', es: '' },
+          title: { en: 'Looking for Life', es: 'En busca de vida' },
           text: {
             en: 'A week later, the lander started looking for signs of life. It used its robot arm to scoop up some Martian soil and place it inside its mini laboratory. Some of the tests gave weird results that could have meant life, but, unfortunately, the most important test found no signs of it. Mars\' soil had a lot of sulfur, unlike anything that was found on Earth or the Moon. The mystery of life on Mars wasn\'t solved.\n\n' +
                 'Scientists still argue about those results today. In the meantime, the lander kept sending weather updates for years.',
-            es: ''
+            es: 'Una semana más tarde, el módulo de aterrizaje comenzó a buscar indicios de vida. Utilizó su brazo robótico para recoger una muestra de suelo marciano y depositarla en el interior de su pequeño laboratorio. Algunas de las pruebas arrojaron resultados extraños que podrían haber indicado la presencia de vida; sin embargo, lamentablemente, el análisis más importante no halló ningún indicio de ella. El suelo marciano contenía una gran cantidad de azufre, algo nunca visto ni en la Tierra ni en la Luna. El misterio sobre la existencia de vida en Marte quedó sin resolver.\n\n' +
+                'Hoy en día, los científicos siguen debatiendo sobre aquellos resultados. Mientras tanto, la sonda de aterrizaje continuó enviando información meteorológica durante años.'
           }
         },
         {
-          title: { en: 'The Last Message', es: '' },
+          title: { en: 'The Last Message', es: 'El último mensaje' },
           text: {
             en: 'Up in space, the orbiter kept working until 1980, when it ran out of fuel after orbiting Mars 1,489 times. Down below, the lander kept going alone on the ground, and, in 1982, it was renamed the Thomas Mutch Memorial Station, after the leader of the Viking camera team, who had passed away. Then, on November 11, 1982, someone on Earth had sent the wrong command to it by accident, and the lander stopped answering. NASA tried multiple times to reach it, but it had completely lost its connection to Earth.\n\n' +
                 'After more than 6 years of work, Viking 1 went silent. Still sitting on the Golden Plain, waiting.',
-            es: ''
+            es: 'En el espacio, la sonda orbital siguió funcionando hasta 1980, momento en el que se quedó sin combustible tras haber orbitado Marte 1489 veces. En la superficie, la sonda de aterrizaje continuó operando por su cuenta; en 1982, fue rebautizada como «Estación Conmemorativa Thomas Mutch» (Thomas Mutch Memorial Station), en honor al jefe del equipo de cámaras de la misión Viking, quien había fallecido. Más tarde, el 11 de noviembre de 1982, alguien en la Tierra envió por error un comando incorrecto, tras lo cual la sonda dejó de responder. La NASA intentó contactarla en repetidas ocasiones, pero la conexión con la Tierra se había perdido por completo.\n\n' +
+                'Tras más de seis años de actividad, la Viking 1 enmudeció. Allí sigue, en la «Llanura Dorada» (Golden Plain), a la espera.'
           }
         }
       ],
@@ -500,42 +511,46 @@
       },
       pages: [
         {
-          title: { en: 'The Twin Rovers', es: '' },
+          title: { en: 'The Twin Rovers', es: 'Los vehículos gemelos' },
           text: {
             en: 'On July 7, 2003, a rocket carrying a robot called Opportunity launched from Cape Canaveral, Florida. Opportunity was a rover, a six-wheeled robot about the size of a golf cart, and it had a twin named Spirit, which was sent to the other side of Mars. Their mission was to study rocks and soil and look for clues that Mars once had water, and maybe even conditions where life could exist.\n\n' +
                 'Opportunity was designed to last only 90 Martian days, or around three Earth months, and to travel only about 1 kilometer.',
-            es: ''
+            es: 'El 7 de julio de 2003, un cohete que transportaba un robot llamado Opportunity despegó desde Cabo Cañaveral, Florida. Opportunity era un vehículo explorador —un robot de seis ruedas, aproximadamente del tamaño de un carrito de golf— que contaba con un gemelo llamado Spirit, el cual fue enviado al otro lado de Marte. Su misión consistía en estudiar las rocas y el suelo, buscando indicios de que en Marte hubo agua en el pasado y, tal vez, incluso condiciones que permitieran la existencia de vida.\n\n' +
+                'Opportunity fue diseñado para durar solo 90 días marcianos (unos tres meses terrestres) y para recorrer apenas un kilómetro.'
           }
         },
         {
-          title: { en: 'Bouncing onto Mars', es: '' },
+          title: { en: 'Bouncing onto Mars', es: 'Un aterrizaje a rebotes en Marte' },
           text: {
             en: 'After six months in space, Opportunity finally reached Mars on January 24, 2004, just 20 days after Spirit did. It was wrapped in giant airbags, and when it hit the ground, it bounced at least 26 times before rolling to a stop in a flat area called Meridiani Planum, right inside a crater named Eagle. Incredible, right, reader?\n\n' +
                 'Its landing site was named the Challenger Memorial Station, in honor of the crew of the Space Shuttle Challenger, lost in 1986.',
-            es: ''
+            es: 'Tras seis meses en el espacio, Opportunity llegó finalmente a Marte el 24 de enero de 2004, apenas 20 días después de la llegada de Spirit. El robot estaba envuelto en enormes bolsas de aire; al tocar la superficie, rebotó al menos 26 veces antes de detenerse en una zona llana llamada Meridiani Planum, justo dentro de un cráter bautizado como Eagle. ¡Increíble, ¿verdad, lector?!\n\n' +
+                'El lugar de su aterrizaje fue denominado «Challenger Memorial Station», en honor a la tripulación del transbordador espacial Challenger, perdida en 1986.'
           }
         },
         {
-          title: { en: 'Never Giving Up', es: '' },
+          title: { en: 'Never Giving Up', es: 'Sin rendirse jamás' },
           text: {
             en: 'Opportunity\'s journey wasn\'t easy. In 2005, its wheels got stuck in sand, and it took engineers six weeks, moving it just a few centimeters at a time, to be able to free it. In 2007, massive dust storms covered Mars and blocked most of the sunlight that Opportunity needed for power, so it had to stop and wait about 6 weeks for the sky to clear. But it kept going, and by 2010, Opportunity had been working longer than any spacecraft on Mars, breaking the record set by Viking 1. Even its twin, Spirit, had already gone silent.\n\n' +
                 'Now Opportunity was exploring alone.',
-            es: ''
+            es: 'El viaje de Opportunity no fue sencillo. En 2005, sus ruedas quedaron atrapadas en la arena; los ingenieros tardaron seis semanas en liberarlo, moviéndolo apenas unos centímetros cada vez. En 2007, unas gigantescas tormentas de polvo cubrieron Marte y bloquearon gran parte de la luz solar que Opportunity necesitaba para obtener energía, por lo que tuvo que detenerse y esperar unas seis semanas a que el cielo se despejara. Pero el robot siguió adelante y, para 2010, Opportunity ya había estado operando más tiempo que cualquier otra nave espacial en Marte, superando el récord establecido por la Viking 1. Incluso su gemelo, Spirit, ya había dejado de comunicarse.\n\n' +
+                'Ahora, Opportunity exploraba en solitario.'
           }
         },
         {
-          title: { en: 'Records and Memories', es: '' },
+          title: { en: 'Records and Memories', es: 'Récords y recuerdos' },
           text: {
             en: 'Opportunity kept impressing us as it kept breaking records, and in 2015, it became the first ever to travel the distance of a full marathon on another world. In 2016, it even climbed the steepest slope any rover had ever driven on Mars. Luckily, sometimes the wind would blow the dust off its solar panels, giving it new energy. Opportunity also carried a special memory: as a tribute to the victims, a small piece of its rock-grinding tool was made from aluminum recovered from the World Trade Center towers, which were destroyed on September 11, 2001.',
-            es: ''
+            es: 'Opportunity siguió sorprendiéndonos al batir récords constantemente; en 2015, se convirtió en el primer vehículo en recorrer la distancia de un maratón completo en otro mundo. En 2016, llegó incluso a ascender por la pendiente más pronunciada que cualquier vehículo explorador haya transitado jamás en Marte. Por fortuna, en ocasiones el viento eliminaba el polvo de sus paneles solares, proporcionándole nueva energía. Opportunity también portaba un recuerdo especial: como homenaje a las víctimas, una pequeña pieza de su herramienta para perforar rocas fue fabricada con aluminio recuperado de las torres del World Trade Center, destruidas el 11 de septiembre de 2001.'
           }
         },
         {
-          title: { en: 'Perseverance Valley', es: '' },
+          title: { en: 'Perseverance Valley', es: 'Valle de la Perseverancia (Perseverance Valley)' },
           text: {
             en: 'In 2017, Opportunity drove into a gully called Perseverance Valley. Sadly, in June 2018, a very big dust storm covered the entire planet and blocked out the Sun. And, without any sunlight, Opportunity couldn\'t get power. Its last signal reached Earth on June 10, 2018. NASA kept trying to reach it for months, but Opportunity never answered back. Finally, on February 13, 2019, NASA declared the mission over.\n\n' +
                 'Opportunity surprised everyone. It was supposed to only last 90 days, but instead it lasted almost 15 years, about 60 times longer than expected, and drove over 45 kilometers when it was made to only drive 1. Opportunity still rests in Perseverance Valley, the perfect name for a rover that never gave up and kept going against all odds.',
-            es: ''
+            es: 'En 2017, Opportunity se adentró en un barranco llamado Valle de la Perseverancia. Lamentablemente, en junio de 2018, una gigantesca tormenta de polvo cubrió el planeta entero y ocultó el Sol. Sin luz solar, Opportunity no pudo obtener energía. Su última señal llegó a la Tierra el 10 de junio de 2018. La NASA intentó establecer contacto durante meses, pero Opportunity nunca respondió. Finalmente, el 13 de febrero de 2019, la NASA dio por concluida la misión.\n\n' +
+                'Opportunity sorprendió a todos. Aunque estaba diseñado para durar solo 90 días, permaneció activo durante casi 15 años —unas 60 veces más de lo previsto— y recorrió más de 45 kilómetros, a pesar de haber sido construido para cubrir apenas 1 kilómetro. Opportunity descansa todavía en el Valle de la Perseverancia; un nombre perfecto para un vehículo explorador que nunca se rindió y siguió adelante contra todo pronóstico.'
           }
         }
       ],
