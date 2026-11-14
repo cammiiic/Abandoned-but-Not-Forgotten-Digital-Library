@@ -1,0 +1,178 @@
+/* =====================================================================
+   Abandoned but Not Forgotten — retro pixel-art styles
+   ===================================================================== */
+
+:root {
+  --night: #0b1530;
+  --night-2: #14224a;
+  --night-3: #1f3266;
+  --gold: #ffd23f;
+  --gold-dark: #c99a12;
+  --ink: #0a0a0a;
+  --paper: #f3ead2;
+  --paper-2: #e6d9b8;
+  --paper-ink: #34261a;
+  --rust: #c1440e;
+  --moon: #c9c6bd;
+  --text: #e8ecf8;
+  --muted: #a9b4d6;
+  --ok: #3fbf6a;
+  --bad: #e2533a;
+
+  --font-pixel: "Press Start 2P", ui-monospace, monospace;
+  --font-body: "VT323", ui-monospace, monospace;
+
+  --px: 4px;                 /* one "pixel" for borders and shadows */
+  --shadow: var(--px) var(--px) 0 var(--ink);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--night);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 22px;
+  line-height: 1.25;
+  overflow-x: hidden;
+}
+
+img, canvas { image-rendering: pixelated; image-rendering: crisp-edges; }
+
+a { color: var(--gold); }
+a:focus-visible, button:focus-visible, [tabindex]:focus-visible {
+  outline: 3px dashed var(--gold);
+  outline-offset: 3px;
+}
+
+h1, h2, h3 { font-family: var(--font-pixel); font-weight: 400; line-height: 1.4; margin: 0 0 .6em; }
+
+.skip {
+  position: absolute; left: -999px; top: 8px; z-index: 100;
+  background: var(--gold); color: var(--ink); padding: 8px 12px;
+  font-family: var(--font-pixel); font-size: 12px;
+}
+.skip:focus { left: 8px; }
+
+/* ---------- night sky ---------- */
+
+.sky { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: linear-gradient(var(--night) 0%, #0f1c40 60%, #172752 100%); }
+.stars { position: absolute; inset: 0; width: 100%; height: 100%; }
+.twinkles span {
+  position: absolute; width: 4px; height: 4px; background: #fff;
+  box-shadow: 4px 0 0 rgba(255,255,255,.5), -4px 0 0 rgba(255,255,255,.5),
+              0 4px 0 rgba(255,255,255,.5), 0 -4px 0 rgba(255,255,255,.5);
+  animation: twinkle 3s steps(3) infinite;
+}
+@keyframes twinkle { 0%, 100% { opacity: 1; } 50% { opacity: .15; } }
+
+.orb { position: absolute; width: 96px; height: 96px; }
+.orb-sun  { top: 84px; right: 4vw; width: 112px; height: 112px; }
+.orb-moon { top: 38vh; left: 2vw; width: 80px; height: 80px; opacity: .9; }
+.orb-mars { bottom: 8vh; right: 7vw; width: 64px; height: 64px; opacity: .9; }
+
+/* ---------- layout ---------- */
+
+.topbar, main, .footer { position: relative; z-index: 1; }
+
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px;
+  padding: 12px 16px;
+  background: rgba(11, 21, 48, .92);
+  border-bottom: var(--px) solid var(--ink);
+  box-shadow: 0 var(--px) 0 var(--night-3);
+}
+.brand {
+  font-family: var(--font-pixel); font-size: 12px; line-height: 1.5;
+  color: var(--gold); text-decoration: none; text-shadow: 2px 2px 0 var(--ink);
+  max-width: 20ch;
+}
+.mainnav { display: flex; gap: 4px 14px; flex-wrap: wrap; flex: 1; }
+.mainnav a {
+  font-family: var(--font-pixel); font-size: 10px; color: var(--text);
+  text-decoration: none; padding: 6px 2px; border-bottom: 3px solid transparent;
+}
+.mainnav a:hover { color: var(--gold); }
+.mainnav a[aria-current="page"] { color: var(--gold); border-bottom-color: var(--gold); }
+
+main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16px 40px; outline: none; }
+
+.footer {
+  text-align: center; color: var(--muted); font-size: 18px;
+  padding: 16px; border-top: var(--px) solid var(--ink); background: rgba(11,21,48,.85);
+}
+.footer p { margin: 0; }
+
+/* ---------- shared pieces ---------- */
+
+.panel {
+  background: rgba(20, 34, 74, .92);
+  border: var(--px) solid var(--ink);
+  box-shadow: inset 0 0 0 var(--px) var(--night-3), 6px 6px 0 var(--ink);
+  padding: 24px;
+}
+
+.h1 { font-size: clamp(16px, 4vw, 24px); color: var(--gold); text-shadow: 3px 3px 0 var(--ink); }
+.h2 { font-size: clamp(12px, 3vw, 16px); color: var(--text); }
+.lead { font-size: 24px; color: var(--muted); margin: 0 0 24px; max-width: 46ch; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--font-pixel); font-size: 12px; line-height: 1.4;
+  color: var(--ink); background: var(--gold); text-decoration: none; text-align: center;
+  border: 3px solid var(--ink); border-radius: 0;
+  box-shadow: inset -3px -3px 0 var(--gold-dark), var(--shadow);
+  padding: 12px 16px; min-height: 44px; cursor: pointer;
+  transition: transform .05s steps(1);
+}
+.btn:hover { background: #ffdf6b; }
+.btn:active { transform: translate(var(--px), var(--px)); box-shadow: inset -3px -3px 0 var(--gold-dark); }
+.btn[disabled] { opacity: .4; cursor: not-allowed; transform: none; }
+.btn-small { font-size: 10px; padding: 8px 10px; min-height: 36px; }
+.btn-ghost { background: var(--paper); box-shadow: inset -3px -3px 0 var(--paper-2), var(--shadow); }
+.btn-ghost:hover { background: #fff7e0; }
+
+.badge {
+  display: inline-block; font-family: var(--font-pixel); font-size: 8px;
+  background: var(--ink); color: var(--gold); padding: 5px 6px; letter-spacing: 1px;
+}
+
+/* ---------- home ---------- */
+
+.hero { text-align: center; max-width: 760px; margin: 24px auto 0; }
+.hero .kicker { font-family: var(--font-pixel); font-size: 10px; color: var(--muted); margin: 0 0 16px; }
+.hero h1 { font-size: clamp(20px, 5.5vw, 40px); color: var(--gold); text-shadow: 4px 4px 0 var(--ink); margin-bottom: 20px; }
+.hero-art { width: 160px; height: 160px; margin: 4px auto 16px; display: block; border: var(--px) solid var(--ink); }
+.hero .tagline { font-size: 28px; margin: 0 0 8px; }
+.hero .intro { font-size: 22px; color: var(--muted); max-width: 44ch; margin: 0 auto 24px; }
+.btn-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+
+/* ---------- placeholder sections ---------- */
+
+.placeholder .construction { display: flex; align-items: center; gap: 16px; margin-top: 8px; }
+.mission-list { display: grid; gap: 16px; }
+.mission-list h2 { font-size: 12px; color: var(--gold); margin-bottom: 6px; }
+.mission-list p { margin: 0; }
+
+@media (max-width: 640px) {
+  body { font-size: 20px; }
+  .orb-sun { width: 72px; height: 72px; top: 120px; }
+  .orb-moon { width: 56px; height: 56px; }
+  .orb-mars { width: 44px; height: 44px; }
+  .panel { padding: 18px; }
+  .brand { font-size: 10px; }
+  .mainnav { flex-basis: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; }
+  .mainnav a { white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+/* end:base */

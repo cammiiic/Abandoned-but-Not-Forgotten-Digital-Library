@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Abandoned but Not Forgotten</title>
+  <meta name="description" content="A bilingual pixel-art digital library of the spacecraft left behind on the Moon and Mars.">
+  <meta name="theme-color" content="#0b1530">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <a class="skip" href="#app" data-i18n="skip">Skip to content</a>
+
+  <!-- Night sky: pixel stars, Sun, Moon and Mars (drawn by js/app.js) -->
+  <div class="sky" aria-hidden="true">
+    <canvas class="stars" id="stars"></canvas>
+    <div class="twinkles" id="twinkles"></div>
+    <canvas class="orb orb-sun" data-orb="sun"></canvas>
+    <canvas class="orb orb-moon" data-orb="moon"></canvas>
+    <canvas class="orb orb-mars" data-orb="mars"></canvas>
+  </div>
+
+  <header class="topbar">
+    <a class="brand" href="#/home" data-i18n="brand">Abandoned but Not Forgotten</a>
+    <nav class="mainnav" aria-label="Main">
+      <a href="#/home" data-route="home" data-i18n="navHome">Home</a>
+      <a href="#/library" data-route="library" data-i18n="navLibrary">Library</a>
+      <a href="#/where" data-route="where" data-i18n="navWhere">Where now?</a>
+      <a href="#/map" data-route="map" data-i18n="navMap">Map</a>
+      <a href="#/mission" data-route="mission" data-i18n="navMission">Mission</a>
+    </nav>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <footer class="footer">
+    <p data-i18n="footer">Made for the NASA Space Apps Challenge.</p>
+  </footer>
+
+  <script src="data/books.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
