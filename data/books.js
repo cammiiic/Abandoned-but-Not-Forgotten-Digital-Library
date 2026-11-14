@@ -794,8 +794,8 @@
           },
           {
             b: { en: 'Translation:', es: 'Traducción:' },
-            t: { en: 'The Spanish versions of the stories were translated with Google Translate, then reviewed and adjusted by us, as native Spanish speakers, so they sound natural.',
-                 es: 'Las versiones en español de las historias se tradujeron con Google Translate y luego las revisamos y ajustamos nosotras, como hablantes nativas de español, para que sonaran naturales.' }
+            t: { en: 'The Spanish versions of the stories were translated with Google Translate, then reviewed and adjusted by us, as native Spanish speakers, so they sound natural. Claude helped translate the "Our mission" page into Spanish.',
+                 es: 'Las versiones en español de las historias se tradujeron con Google Translate y luego las revisamos y ajustamos nosotras, como hablantes nativas de español, para que sonaran naturales. Claude ayudó a traducir al español la página «Nuestra misión».' }
           },
           {
             b: { en: 'Website development:', es: 'Desarrollo del sitio web:' },
@@ -816,11 +816,6 @@
             b: { en: '"Where are they now?" texts:', es: 'Textos de «¿Dónde están ahora?»:' },
             t: { en: 'The timelines and the "today" descriptions for each spacecraft were drafted by Claude from our stories and NASA mission dates, and reviewed by us.',
                  es: 'Las líneas del tiempo y las descripciones de «hoy» de cada nave las redactó Claude a partir de nuestras historias y de las fechas de las misiones de la NASA, y las revisamos nosotras.' }
-          },
-          {
-            b: { en: 'This page:', es: 'Esta página:' },
-            t: { en: 'Claude corrected the punctuation of our English text and translated this "Our mission" page into Spanish.',
-                 es: 'Claude corrigió la puntuación de nuestro texto en inglés y tradujo al español esta página de «Nuestra misión».' }
           }
         ]
       }
