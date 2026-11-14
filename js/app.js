@@ -674,6 +674,8 @@
     var stage = app.querySelector('.book-stage');
     var base = document.getElementById('page-base');
     stopAudio();
+    // after reading to the bottom of a long page, bring the top of the next one into view
+    if (stage.getBoundingClientRect().top < 0) stage.scrollIntoView({ block: 'start' });
 
     if (REDUCED) {
       reader.page = n; renderPageInto(base, book); updateNav(book);
@@ -685,6 +687,7 @@
       // the old page lifts off the stack and turns over to the left
       ov = base.cloneNode(true);
       ov.removeAttribute('id');
+      ov.style.height = base.offsetHeight + 'px';   // keep the old page's shape while it turns
       stage.appendChild(ov);
       hydrateArt(ov);
       ov.classList.add('page-overlay', 'flip-out');

@@ -179,12 +179,14 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 
 @media (max-width: 640px) {
   body { font-size: 20px; }
-  .orb-sun { width: 72px; height: 72px; top: 120px; }
-  .orb-moon { width: 56px; height: 56px; }
+  .orb { opacity: .55; }
+  .orb-sun { width: 64px; height: 64px; top: auto; bottom: 30vh; right: -12px; }
+  .orb-moon { width: 56px; height: 56px; left: -14px; }
   .orb-mars { width: 44px; height: 44px; }
   .panel { padding: 18px; }
   .brand { font-size: 10px; }
-  .mainnav { flex-basis: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; }
+  .mainnav { flex-basis: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; gap: 12px; justify-content: space-between; }
+  .mainnav a { font-size: 9px; }
   .mainnav a { white-space: nowrap; }
 }
 
@@ -252,7 +254,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   overflow-wrap: break-word;
 }
 .page-overlay {
-  position: absolute; inset: 0; z-index: 2; overflow: hidden;
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2; overflow: hidden;
   transform-origin: left center; backface-visibility: hidden;
   box-shadow: none;
 }
@@ -396,6 +398,12 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   margin: 14px 0 0; padding: 10px 12px; text-align: center;
   font-family: var(--font-pixel); font-size: 11px; line-height: 1.6;
   background: var(--gold); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+}
+@media (max-width: 640px) {
+  .swatch { font-size: 17px; min-height: 36px; padding-right: 8px; }
+  .sw-chip { width: 24px; height: 24px; }
+  .cbn-left { font-size: 17px; line-height: 1; }
+  .cbn-reset { font-size: 8px; }
 }
 /* end:cbn */
 
