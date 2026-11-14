@@ -364,6 +364,185 @@
     }
   }
 
+  /* ---------- Color by number ----------
+     Uses the book's pixel art: each palette key is the number on the cell.
+     Progress is kept per book while the site is open.                    */
+
+  var cbnState = {};
+
+  // The background color (art.background) starts filled so kids paint the craft, not the sky
+  function cbnKeys(book) {
+    return Object.keys(book.art.palette).filter(function (k) { return k !== book.art.background; });
+  }
+
+  function blankFill(book) {
+    return book.art.grid.join('').split('').map(function (k) { return k === book.art.background; });
+  }
+
+  function getCbn(book) {
+    var s = cbnState[book.id];
+    if (!s) s = cbnState[book.id] = { filled: blankFill(book), sel: cbnKeys(book)[0], cell: null };
+    return s;
+  }
+
+  PAGES.color = {
+    cls: 'page-paper page-activity',
+    html: function (book) {
+      var s = getCbn(book), pal = book.art.palette;
+      return '<header class="page-head">' +
+          '<span class="page-kicker">' + esc(t('activity')) + '</span>' +
+          '<h2 class="page-title">' + esc(t('colorTitle')) + '</h2>' +
+        '</header>' +
+        '<p class="help">' + esc(t('colorHelp')) + '</p>' +
+        '<div class="palette" role="radiogroup" aria-label="' + esc(t('colors')) + '">' +
+          cbnKeys(book).map(function (k) {
+            return '<button type="button" class="swatch" role="radio" aria-checked="' + (s.sel === k) + '" data-k="' + esc(k) + '" style="--sw:' + esc(pal[k].color) + '">' +
+              '<span class="sw-chip">' + esc(k) + '</span><span class="sw-name">' + esc(L(pal[k].name)) + '</span></button>';
+          }).join('') +
+        '</div>' +
+        '<div class="cbn-tools">' +
+          '<button type="button" class="btn btn-small btn-ghost cbn-zoom" data-z="-1" aria-label="' + esc(t('zoomOut')) + '">&minus;</button>' +
+          '<button type="button" class="btn btn-small btn-ghost cbn-zoom" data-z="1" aria-label="' + esc(t('zoomIn')) + '">+</button>' +
+          '<span class="cbn-left" aria-live="polite"></span>' +
+          '<button type="button" class="btn btn-small btn-ghost cbn-reset">' + esc(t('reset')) + '</button>' +
+        '</div>' +
+        '<div class="cbn-scroll"><div class="cbn-grid" style="--cols:' + book.art.grid[0].length + '"></div></div>' +
+        '<p class="cbn-done" role="status" hidden></p>';
+    },
+    hydrate: function (el, book) {
+      var s = getCbn(book), art = book.art, rows = art.grid, w = rows[0].length;
+      var grid = el.querySelector('.cbn-grid'), scroll = el.querySelector('.cbn-scroll');
+      var leftEl = el.querySelector('.cbn-left'), doneEl = el.querySelector('.cbn-done');
+      var MIN = 12, MAX = 56;
+
+      // build the cells
+      var frag = document.createDocumentFragment();
+      for (var y = 0; y < rows.length; y++) {
+        for (var x = 0; x < w; x++) {
+          var i = y * w + x, k = rows[y][x], c = document.createElement('div');
+          c.className = 'cell';
+          c.setAttribute('data-i', i);
+          c.setAttribute('data-k', k);
+          c.textContent = k;
+          frag.appendChild(c);
+        }
+      }
+      grid.appendChild(frag);
+      var cells = grid.children;
+
+      function paint(i) {
+        var c = cells[i];
+        c.classList.add('filled');
+        c.style.background = art.palette[c.getAttribute('data-k')].color;
+      }
+      function highlight() {
+        for (var j = 0; j < cells.length; j++) {
+          cells[j].classList.toggle('hl', cells[j].getAttribute('data-k') === s.sel && !s.filled[j]);
+        }
+      }
+      function progress() {
+        var left = s.filled.filter(function (f) { return !f; }).length;
+        leftEl.textContent = t('squaresLeft', { n: left });
+        doneEl.hidden = left > 0;
+        el.classList.toggle('cbn-complete', left === 0);
+        if (left === 0) doneEl.textContent = t('colorDone', { name: L(book.craftName) });
+      }
+      function setCell(px) {
+        s.cell = Math.max(MIN, Math.min(MAX, Math.round(px)));
+        grid.style.setProperty('--cell', s.cell + 'px');
+      }
+
+      s.filled.forEach(function (f, i) { if (f) paint(i); });
+      // fit the width, leaving room for padding, borders and a scrollbar
+      if (!s.cell) setCell(scroll.clientWidth ? Math.min(34, (scroll.clientWidth - 28) / w) : 20);
+      else setCell(s.cell);
+      highlight();
+      progress();
+
+      // pick a color
+      el.querySelector('.palette').addEventListener('click', function (e) {
+        var b = e.target.closest('.swatch');
+        if (!b) return;
+        s.sel = b.getAttribute('data-k');
+        el.querySelectorAll('.swatch').forEach(function (x) { x.setAttribute('aria-checked', String(x === b)); });
+        highlight();
+      });
+
+      function tryFill(c, shake) {
+        var i = +c.getAttribute('data-i');
+        if (s.filled[i]) return;
+        if (c.getAttribute('data-k') === s.sel) {
+          s.filled[i] = true;
+          paint(i);
+          c.classList.remove('hl');
+          progress();
+        } else if (shake) {
+          c.classList.remove('nope');
+          void c.offsetWidth; // restart the shake
+          c.classList.add('nope');
+        }
+      }
+
+      // tap a cell (touch, pen, keyboard-less mouse click)
+      grid.addEventListener('click', function (e) {
+        var c = e.target.closest('.cell');
+        if (c) tryFill(c, true);
+      });
+
+      // with a mouse, click and drag to paint many cells (wrong cells are skipped)
+      var dragging = false;
+      grid.addEventListener('pointerdown', function (e) { if (e.pointerType === 'mouse' && e.button === 0) dragging = true; });
+      grid.addEventListener('pointerover', function (e) {
+        if (!dragging) return;
+        var c = e.target.closest('.cell');
+        if (c) tryFill(c, false);
+      });
+      function stopDrag() { dragging = false; }
+      window.addEventListener('pointerup', stopDrag);
+      onLeave(function () { window.removeEventListener('pointerup', stopDrag); });
+
+      el.querySelectorAll('.cbn-zoom').forEach(function (b) {
+        b.addEventListener('click', function () { setCell(s.cell + 6 * +b.getAttribute('data-z')); });
+      });
+
+      el.querySelector('.cbn-reset').addEventListener('click', function () {
+        s.filled = blankFill(book);
+        for (var j = 0; j < cells.length; j++) {
+          cells[j].classList.remove('filled'); cells[j].style.background = '';
+          if (s.filled[j]) paint(j);
+        }
+        highlight();
+        progress();
+      });
+
+      // pinch to zoom (two fingers); one finger scrolls and taps
+      var pinch = null;
+      scroll.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 2) {
+          pinch = { d: dist(e.touches), cell: s.cell };
+        }
+      }, { passive: true });
+      scroll.addEventListener('touchmove', function (e) {
+        if (pinch && e.touches.length === 2) {
+          e.preventDefault();
+          setCell(pinch.cell * dist(e.touches) / pinch.d);
+        }
+      }, { passive: false });
+      scroll.addEventListener('touchend', function (e) { if (e.touches.length < 2) pinch = null; }, { passive: true });
+      // ctrl + wheel / trackpad pinch on desktop
+      scroll.addEventListener('wheel', function (e) {
+        if (!e.ctrlKey) return;
+        e.preventDefault();
+        setCell(s.cell * (e.deltaY < 0 ? 1.1 : 0.9));
+      }, { passive: false });
+
+      function dist(tl) {
+        var dx = tl[0].clientX - tl[1].clientX, dy = tl[0].clientY - tl[1].clientY;
+        return Math.sqrt(dx * dx + dy * dy) || 1;
+      }
+    }
+  };
+
   /* page rendering and turning */
 
   function renderPageInto(el, book) {

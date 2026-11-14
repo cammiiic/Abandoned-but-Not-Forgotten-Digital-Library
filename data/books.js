@@ -263,6 +263,7 @@
         }
       ],
       art: {
+        background: '1', // pre-filled on the coloring page
         palette: {
           '1': { color: '#16244a', name: { en: 'Space', es: 'Espacio' } },
           '2': { color: '#ffd23f', name: { en: 'Gold foil', es: 'Lámina dorada' } },
@@ -310,6 +311,7 @@
       },
       pages: placeholderPages(),
       art: {
+        background: '1', // pre-filled on the coloring page
         palette: {
           '1': { color: '#16244a', name: { en: 'Space', es: 'Espacio' } },
           '2': { color: '#ffd23f', name: { en: 'Gold', es: 'Dorado' } },
@@ -355,6 +357,7 @@
       },
       pages: placeholderPages(),
       art: {
+        background: '1', // pre-filled on the coloring page
         palette: {
           '1': { color: '#16244a', name: { en: 'Sky', es: 'Cielo' } },
           '2': { color: '#ffd23f', name: { en: 'Gold', es: 'Dorado' } },
@@ -400,6 +403,7 @@
       },
       pages: placeholderPages(),
       art: {
+        background: '1', // pre-filled on the coloring page
         palette: {
           '1': { color: '#16244a', name: { en: 'Sky', es: 'Cielo' } },
           '2': { color: '#ffd23f', name: { en: 'Gold', es: 'Dorado' } },
