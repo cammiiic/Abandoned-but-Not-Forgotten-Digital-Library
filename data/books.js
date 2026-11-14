@@ -93,7 +93,7 @@
       prev: 'Back',
       next: 'Next',
       pageOf: 'Page {n} of {t}',
-      readerHint: 'Tip: use the arrow keys or swipe to turn pages.',
+      readerHint: 'Tip: drag the page with your finger or mouse to turn it. Arrow keys work too.',
       coverKickerMoon: 'Left on the Moon',
       coverKickerMars: 'Left on Mars',
       openBook: 'Open the book',
@@ -106,10 +106,15 @@
 
       activity: 'Activity',
       colorTitle: 'Color by number',
-      colorHelp: 'Pick a color, then tap every square with its number.',
+      colorHelp: 'Pick a color, then paint every square with its number. Drag to paint many at once. Pinch or scroll to zoom; drag with two fingers (or use Move) to look around.',
       colors: 'Colors',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
+      toolPaint: 'Paint',
+      toolMove: 'Move',
+      fit: 'Fit',
+      find: 'Find',
+      findHint: 'Jump to a square that still needs this color',
       squaresLeft: '{n} squares left',
       colorDone: 'You did it! {name} is complete.',
       reset: 'Start over',
@@ -176,7 +181,7 @@
       prev: 'Atrás',
       next: 'Siguiente',
       pageOf: 'Página {n} de {t}',
-      readerHint: 'Consejo: usa las flechas del teclado o desliza para pasar las páginas.',
+      readerHint: 'Consejo: arrastra la página con el dedo o el ratón para pasarla. También funcionan las flechas del teclado.',
       coverKickerMoon: 'Dejado en la Luna',
       coverKickerMars: 'Dejado en Marte',
       openBook: 'Abrir el libro',
@@ -189,10 +194,15 @@
 
       activity: 'Actividad',
       colorTitle: 'Colorea por números',
-      colorHelp: 'Elige un color y toca cada casilla que tenga su número.',
+      colorHelp: 'Elige un color y pinta cada casilla que tenga su número. Arrastra para pintar varias a la vez. Pellizca o usa la rueda del ratón para hacer zoom; arrastra con dos dedos (o usa Mover) para moverte.',
       colors: 'Colores',
       zoomIn: 'Acercar',
       zoomOut: 'Alejar',
+      toolPaint: 'Pintar',
+      toolMove: 'Mover',
+      fit: 'Ajustar',
+      find: 'Buscar',
+      findHint: 'Ir a una casilla que todavía necesita este color',
       squaresLeft: 'Quedan {n} casillas',
       colorDone: '¡Lo lograste! {name} está completo.',
       reset: 'Empezar de nuevo',
@@ -456,6 +466,24 @@
     }
   ];
 
+  /* ---------- Coloring page colors ----------
+     The coloring page is built from each book's detailed 64x64 drawing.
+     The sky, ground and black outlines come pre-colored; every spacecraft
+     pixel is grouped into one of these crayons (numbered in this order).
+     "match" lists the drawing's palette names (see js/sprites.js).       */
+
+  var colorFamilies = [
+    { color: '#f2f4f8', name: { en: 'White', es: 'Blanco' }, match: ['s0', 's1', 'm0', 'st0', 'st1'] },
+    { color: '#b4bac8', name: { en: 'Light gray', es: 'Gris claro' }, match: ['s2', 'm1'] },
+    { color: '#5c6378', name: { en: 'Dark gray', es: 'Gris oscuro' }, match: ['s3', 's4', 's5', 'm2', 'm3', 'm4', 'm5'] },
+    { color: '#ffd23f', name: { en: 'Yellow', es: 'Amarillo' }, match: ['g0', 'g1'] },
+    { color: '#d0861c', name: { en: 'Gold', es: 'Dorado' }, match: ['g2', 'g3', 'g4'] },
+    { color: '#e0442c', name: { en: 'Red', es: 'Rojo' }, match: ['red', 'red2', 'r0', 'r1', 'r2', 'r3', 'r4', 'r5'] },
+    { color: '#3f7fe0', name: { en: 'Blue', es: 'Azul' }, match: ['b0', 'b1', 'b2', 'b3', 'b4', 'e0', 'e1', 'e2', 'cyan', 'cyan2', 'st2'] },
+    { color: '#58b865', name: { en: 'Green', es: 'Verde' }, match: ['eg', 'eg2'] },
+    { color: '#d9a877', name: { en: 'Sand', es: 'Arena' }, match: ['k0', 'k1', 'k2', 'k3'] }
+  ];
+
   /* ---------- Our Mission (placeholders) ---------- */
 
   var mission = {
@@ -468,5 +496,5 @@
     ]
   };
 
-  window.ABNF_DATA = { ui: ui, books: books, mission: mission };
+  window.ABNF_DATA = { ui: ui, books: books, mission: mission, colorFamilies: colorFamilies };
 })();

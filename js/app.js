@@ -431,183 +431,354 @@
   }
 
   /* ---------- Color by number ----------
-     Uses the book's pixel art: each palette key is the number on the cell.
-     Progress is kept per book while the site is open.                    */
+     Built from the book's detailed 64x64 drawing (js/sprites.js): the sky,
+     ground and black outlines come pre-colored, and every spacecraft pixel
+     becomes a numbered square. It is drawn on a canvas you can paint, pan
+     and zoom freely with fingers, mouse, wheel or trackpad. When finished,
+     the full-detail drawing is revealed. Falls back to the simple grid in
+     books.js if the sprites are not available.                           */
 
   var cbnState = {};
+  var cbnCache = {};
 
-  // The background color (art.background) starts filled so kids paint the craft, not the sky
-  function cbnKeys(book) {
-    return Object.keys(book.art.palette).filter(function (k) { return k !== book.art.background; });
+  function cbnData(book) {
+    if (cbnCache[book.id]) return cbnCache[book.id];
+    var d = { w: 0, h: 0, fixed: [], key: [], reveal: [], keys: [], color: {}, name: {} };
+    var src = SPRITES && SPRITES.coloring ? SPRITES.coloring(book.id) : null;
+    if (src) {
+      d.w = src.w; d.h = src.h;
+      var famOf = {}, used = {}, fams = [];
+      DATA.colorFamilies.forEach(function (fam, fi) { fam.match.forEach(function (n) { famOf[n] = fi; }); });
+      for (var i = 0; i < src.px.length; i++) {
+        var hex = src.px[i] || '#000000';
+        var fi = src.craft[i] ? famOf[src.nameOf(hex)] : undefined;
+        d.reveal.push(hex);
+        if (fi === undefined) { d.fixed.push(hex); fams.push(null); }
+        else { d.fixed.push(null); fams.push(fi); used[fi] = true; }
+      }
+      // number the crayons 1..n in the order of DATA.colorFamilies
+      var n = 0, num = {};
+      DATA.colorFamilies.forEach(function (fam, fi) {
+        if (!used[fi]) return;
+        var k = String(++n);
+        num[fi] = k; d.keys.push(k); d.color[k] = fam.color; d.name[k] = fam.name;
+      });
+      d.key = fams.map(function (fi) { return fi === null ? null : num[fi]; });
+    } else {
+      var art = book.art, rows = art.grid;
+      d.w = rows[0].length; d.h = rows.length;
+      rows.join('').split('').forEach(function (k) {
+        var c = art.palette[k].color;
+        d.reveal.push(c);
+        if (k === art.background) { d.fixed.push(c); d.key.push(null); }
+        else { d.fixed.push(null); d.key.push(k); }
+      });
+      Object.keys(art.palette).forEach(function (k) {
+        if (k === art.background) return;
+        d.keys.push(k); d.color[k] = art.palette[k].color; d.name[k] = art.palette[k].name;
+      });
+    }
+    return (cbnCache[book.id] = d);
   }
 
-  function blankFill(book) {
-    return book.art.grid.join('').split('').map(function (k) { return k === book.art.background; });
+  // pale version of a crayon color, used to show which squares match it
+  function tint(hex) {
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    if (r * 0.3 + g * 0.59 + b * 0.11 > 215) return '#cfe3ff';   // white crayon: a cool blue hint instead
+    function m(c) { return Math.round(c * 0.35 + 255 * 0.65); }
+    return 'rgb(' + m(r) + ',' + m(g) + ',' + m(b) + ')';
   }
 
   function getCbn(book) {
-    var s = cbnState[book.id];
-    if (!s) s = cbnState[book.id] = { filled: blankFill(book), sel: cbnKeys(book)[0], cell: null };
-    return s;
+    var d = cbnData(book);
+    if (!cbnState[book.id]) {
+      cbnState[book.id] = { filled: new Uint8Array(d.w * d.h), sel: d.keys[0], mode: 'paint', view: null, findFrom: 0 };
+    }
+    return cbnState[book.id];
   }
 
   PAGES.color = {
     cls: 'page-paper page-activity',
     html: function (book) {
-      var s = getCbn(book), pal = book.art.palette;
+      var d = cbnData(book), s = getCbn(book);
       return '<header class="page-head">' +
           '<span class="page-kicker">' + esc(t('activity')) + '</span>' +
           '<h2 class="page-title">' + esc(t('colorTitle')) + '</h2>' +
         '</header>' +
         '<p class="help">' + esc(t('colorHelp')) + '</p>' +
         '<div class="palette" role="radiogroup" aria-label="' + esc(t('colors')) + '">' +
-          cbnKeys(book).map(function (k) {
-            return '<button type="button" class="swatch" role="radio" aria-checked="' + (s.sel === k) + '" data-k="' + esc(k) + '" style="--sw:' + esc(pal[k].color) + '">' +
-              '<span class="sw-chip">' + esc(k) + '</span><span class="sw-name">' + esc(L(pal[k].name)) + '</span></button>';
+          d.keys.map(function (k) {
+            return '<button type="button" class="swatch" role="radio" aria-checked="' + (s.sel === k) + '" data-k="' + k + '" style="--sw:' + d.color[k] + '">' +
+              '<span class="sw-chip">' + k + '</span><span class="sw-name">' + esc(L(d.name[k])) + '</span></button>';
           }).join('') +
         '</div>' +
         '<div class="cbn-tools">' +
+          '<div class="seg" role="group">' +
+            '<button type="button" class="seg-btn" data-mode="paint" aria-pressed="' + (s.mode === 'paint') + '">' + esc(t('toolPaint')) + '</button>' +
+            '<button type="button" class="seg-btn" data-mode="move" aria-pressed="' + (s.mode === 'move') + '">' + esc(t('toolMove')) + '</button>' +
+          '</div>' +
           '<button type="button" class="btn btn-small btn-ghost cbn-zoom" data-z="-1" aria-label="' + esc(t('zoomOut')) + '">&minus;</button>' +
           '<button type="button" class="btn btn-small btn-ghost cbn-zoom" data-z="1" aria-label="' + esc(t('zoomIn')) + '">+</button>' +
+          '<button type="button" class="btn btn-small btn-ghost cbn-fit">' + esc(t('fit')) + '</button>' +
+          '<button type="button" class="btn btn-small btn-ghost cbn-find" title="' + esc(t('findHint')) + '">' + esc(t('find')) + '</button>' +
           '<span class="cbn-left" aria-live="polite"></span>' +
           '<button type="button" class="btn btn-small btn-ghost cbn-reset">' + esc(t('reset')) + '</button>' +
         '</div>' +
-        '<div class="cbn-scroll"><div class="cbn-grid" style="--cols:' + book.art.grid[0].length + '"></div></div>' +
+        '<div class="cbn-view"><canvas class="cbn-canvas" role="img" aria-label="' + esc(t('colorTitle') + ': ' + L(book.craftName)) + '"></canvas></div>' +
         '<p class="cbn-done" role="status" hidden></p>';
     },
-    hydrate: function (el, book) {
-      var s = getCbn(book), art = book.art, rows = art.grid, w = rows[0].length;
-      var grid = el.querySelector('.cbn-grid'), scroll = el.querySelector('.cbn-scroll');
-      var leftEl = el.querySelector('.cbn-left'), doneEl = el.querySelector('.cbn-done');
-      var MIN = 12, MAX = 56;
+    hydrate: function (el, book) { colorCanvas(el, book); }
+  };
 
-      // build the cells
-      var frag = document.createDocumentFragment();
-      for (var y = 0; y < rows.length; y++) {
-        for (var x = 0; x < w; x++) {
-          var i = y * w + x, k = rows[y][x], c = document.createElement('div');
-          c.className = 'cell';
-          c.setAttribute('data-i', i);
-          c.setAttribute('data-k', k);
-          c.textContent = k;
-          frag.appendChild(c);
-        }
+  function colorCanvas(el, book) {
+    var d = cbnData(book), s = getCbn(book);
+    var box = el.querySelector('.cbn-view'), cv = el.querySelector('.cbn-canvas'), ctx = cv.getContext('2d');
+    var leftEl = el.querySelector('.cbn-left'), doneEl = el.querySelector('.cbn-done');
+    var W = 0, H = 0, dpr = 1, raf = 0, flash = null, done = false;
+    var MAX_SCALE = 56;
+
+    /* ---- view: s.view = { sc: screen px per square, ox, oy: grid origin } ---- */
+    function fitScale() { return Math.min(W / d.w, H / d.h); }
+    function fit() {
+      var sc = fitScale();
+      s.view = { sc: sc, ox: (W - d.w * sc) / 2, oy: (H - d.h * sc) / 2 };
+    }
+    function clampView() {
+      var v = s.view, m = 48;
+      v.ox = Math.min(W - m, Math.max(m - d.w * v.sc, v.ox));
+      v.oy = Math.min(H - m, Math.max(m - d.h * v.sc, v.oy));
+    }
+    function zoomAt(px, py, sc) {
+      var v = s.view;
+      sc = Math.max(fitScale() * 0.6, Math.min(MAX_SCALE, sc));
+      v.ox = px - (px - v.ox) * sc / v.sc;
+      v.oy = py - (py - v.oy) * sc / v.sc;
+      v.sc = sc;
+      clampView(); draw();
+    }
+    function size() {
+      var w = Math.round(box.clientWidth);
+      if (!w) return false;
+      var h = Math.round(Math.min(w, window.innerHeight * 0.62));
+      if (w === W && h === H) return true;
+      W = w; H = h; dpr = window.devicePixelRatio || 1;
+      cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+      cv.style.height = H + 'px';
+      if (!s.view) fit(); else clampView();
+      draw();
+      return true;
+    }
+
+    /* ---- drawing ---- */
+    function draw() { if (!raf) raf = requestAnimationFrame(paint); }
+    function paint() {
+      raf = 0;
+      if (!s.view) return;
+      // work in real device pixels so squares meet with no seams
+      var v = s.view, sc = v.sc * dpr, ox = v.ox * dpr, oy = v.oy * dpr, DW = cv.width, DH = cv.height;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = '#e6dcc0';
+      ctx.fillRect(0, 0, DW, DH);
+      var x0 = Math.max(0, Math.floor(-ox / sc)), y0 = Math.max(0, Math.floor(-oy / sc));
+      var x1 = Math.min(d.w, Math.ceil((DW - ox) / sc)), y1 = Math.min(d.h, Math.ceil((DH - oy) / sc));
+      var grid = v.sc >= 7, nums = v.sc >= 13, line = Math.max(1, Math.round(dpr));
+      var hl = tint(d.color[s.sel]);
+      if (nums) {
+        ctx.font = Math.floor(sc * 0.8) + 'px VT323, monospace';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       }
-      grid.appendChild(frag);
-      var cells = grid.children;
-
-      function paint(i) {
-        var c = cells[i];
-        c.classList.add('filled');
-        c.style.background = art.palette[c.getAttribute('data-k')].color;
-      }
-      function highlight() {
-        for (var j = 0; j < cells.length; j++) {
-          cells[j].classList.toggle('hl', cells[j].getAttribute('data-k') === s.sel && !s.filled[j]);
+      for (var y = y0; y < y1; y++) {
+        var py = Math.floor(oy + y * sc), ph = Math.floor(oy + (y + 1) * sc) - py;
+        for (var x = x0; x < x1; x++) {
+          var i = y * d.w + x, k = d.key[i], open = k && !s.filled[i] && !done;
+          var px = Math.floor(ox + x * sc), pw = Math.floor(ox + (x + 1) * sc) - px;
+          ctx.fillStyle = done ? d.reveal[i]
+            : !k ? d.fixed[i]
+            : s.filled[i] ? d.color[k]
+            : flash && flash.i === i ? flash.c
+            : k === s.sel ? hl : '#fffaf0';
+          ctx.fillRect(px, py, pw, ph);
+          if (!open) continue;
+          if (grid) {
+            ctx.fillStyle = 'rgba(52,38,26,.3)';
+            ctx.fillRect(px + pw - line, py, line, ph);
+            ctx.fillRect(px, py + ph - line, pw, line);
+          }
+          if (nums) {
+            ctx.fillStyle = k === s.sel ? '#0a0a0a' : 'rgba(52,38,26,.7)';
+            ctx.fillText(k, px + pw / 2, py + ph / 2 + 1);
+          }
         }
-      }
-      function progress() {
-        var left = s.filled.filter(function (f) { return !f; }).length;
-        leftEl.textContent = t('squaresLeft', { n: left });
-        doneEl.hidden = left > 0;
-        el.classList.toggle('cbn-complete', left === 0);
-        if (left === 0) doneEl.textContent = t('colorDone', { name: L(book.craftName) });
-      }
-      function setCell(px) {
-        s.cell = Math.max(MIN, Math.min(MAX, Math.round(px)));
-        grid.style.setProperty('--cell', s.cell + 'px');
-      }
-
-      s.filled.forEach(function (f, i) { if (f) paint(i); });
-      // fit the width, leaving room for padding, borders and a scrollbar
-      if (!s.cell) setCell(scroll.clientWidth ? Math.min(34, (scroll.clientWidth - 28) / w) : 20);
-      else setCell(s.cell);
-      highlight();
-      progress();
-
-      // pick a color
-      el.querySelector('.palette').addEventListener('click', function (e) {
-        var b = e.target.closest('.swatch');
-        if (!b) return;
-        s.sel = b.getAttribute('data-k');
-        el.querySelectorAll('.swatch').forEach(function (x) { x.setAttribute('aria-checked', String(x === b)); });
-        highlight();
-      });
-
-      function tryFill(c, shake) {
-        var i = +c.getAttribute('data-i');
-        if (s.filled[i]) return;
-        if (c.getAttribute('data-k') === s.sel) {
-          s.filled[i] = true;
-          paint(i);
-          c.classList.remove('hl');
-          progress();
-        } else if (shake) {
-          c.classList.remove('nope');
-          void c.offsetWidth; // restart the shake
-          c.classList.add('nope');
-        }
-      }
-
-      // tap a cell (touch, pen, keyboard-less mouse click)
-      grid.addEventListener('click', function (e) {
-        var c = e.target.closest('.cell');
-        if (c) tryFill(c, true);
-      });
-
-      // with a mouse, click and drag to paint many cells (wrong cells are skipped)
-      var dragging = false;
-      grid.addEventListener('pointerdown', function (e) { if (e.pointerType === 'mouse' && e.button === 0) dragging = true; });
-      grid.addEventListener('pointerover', function (e) {
-        if (!dragging) return;
-        var c = e.target.closest('.cell');
-        if (c) tryFill(c, false);
-      });
-      function stopDrag() { dragging = false; }
-      window.addEventListener('pointerup', stopDrag);
-      onLeave(function () { window.removeEventListener('pointerup', stopDrag); });
-
-      el.querySelectorAll('.cbn-zoom').forEach(function (b) {
-        b.addEventListener('click', function () { setCell(s.cell + 6 * +b.getAttribute('data-z')); });
-      });
-
-      el.querySelector('.cbn-reset').addEventListener('click', function () {
-        s.filled = blankFill(book);
-        for (var j = 0; j < cells.length; j++) {
-          cells[j].classList.remove('filled'); cells[j].style.background = '';
-          if (s.filled[j]) paint(j);
-        }
-        highlight();
-        progress();
-      });
-
-      // pinch to zoom (two fingers); one finger scrolls and taps
-      var pinch = null;
-      scroll.addEventListener('touchstart', function (e) {
-        if (e.touches.length === 2) {
-          pinch = { d: dist(e.touches), cell: s.cell };
-        }
-      }, { passive: true });
-      scroll.addEventListener('touchmove', function (e) {
-        if (pinch && e.touches.length === 2) {
-          e.preventDefault();
-          setCell(pinch.cell * dist(e.touches) / pinch.d);
-        }
-      }, { passive: false });
-      scroll.addEventListener('touchend', function (e) { if (e.touches.length < 2) pinch = null; }, { passive: true });
-      // ctrl + wheel / trackpad pinch on desktop
-      scroll.addEventListener('wheel', function (e) {
-        if (!e.ctrlKey) return;
-        e.preventDefault();
-        setCell(s.cell * (e.deltaY < 0 ? 1.1 : 0.9));
-      }, { passive: false });
-
-      function dist(tl) {
-        var dx = tl[0].clientX - tl[1].clientX, dy = tl[0].clientY - tl[1].clientY;
-        return Math.sqrt(dx * dx + dy * dy) || 1;
       }
     }
-  };
+
+    /* ---- painting ---- */
+    function cellAt(cx, cy) {
+      var v = s.view, x = Math.floor((cx - v.ox) / v.sc), y = Math.floor((cy - v.oy) / v.sc);
+      return x < 0 || y < 0 || x >= d.w || y >= d.h ? -1 : y * d.w + x;
+    }
+    function flashCell(i, c) {
+      flash = { i: i, c: c };
+      draw();
+      setTimeout(function () { if (flash && flash.i === i) { flash = null; draw(); } }, 450);
+    }
+    var dirty = false;
+    function paintCell(i, tap) {
+      if (i < 0 || done) return;
+      var k = d.key[i];
+      if (!k || s.filled[i]) return;
+      if (k === s.sel) { s.filled[i] = 1; dirty = true; }
+      else if (tap) flashCell(i, '#ff9c8a');
+    }
+    function paintLine(ax, ay, bx, by) {
+      var steps = Math.max(1, Math.ceil(Math.hypot(bx - ax, by - ay) / Math.max(2, s.view.sc / 2)));
+      for (var j = 1; j <= steps; j++) paintCell(cellAt(ax + (bx - ax) * j / steps, ay + (by - ay) * j / steps), false);
+    }
+    function afterPaint() { if (dirty) { dirty = false; progress(); draw(); } }
+
+    function progress() {
+      var left = 0, perKey = {};
+      for (var i = 0; i < d.key.length; i++) {
+        if (d.key[i] && !s.filled[i]) { left++; perKey[d.key[i]] = 1; }
+      }
+      leftEl.textContent = t('squaresLeft', { n: left });
+      el.querySelectorAll('.swatch').forEach(function (b) { b.classList.toggle('done', !perKey[b.getAttribute('data-k')]); });
+      done = left === 0;
+      doneEl.hidden = !done;
+      el.classList.toggle('cbn-complete', done);
+      if (done) doneEl.textContent = t('colorDone', { name: L(book.craftName) });
+    }
+
+    /* ---- pointer input: 1 finger/mouse paints (or moves), 2 fingers pinch + pan ---- */
+    var ptrs = {}, gesture = null, last = null, pinch = null, space = false;
+    function pos(e) { var r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    function setCursor() { cv.style.cursor = s.mode === 'move' || space ? (gesture === 'pan' ? 'grabbing' : 'grab') : 'crosshair'; }
+
+    cv.addEventListener('pointerdown', function (e) {
+      if (!s.view) return;
+      e.preventDefault();
+      try { cv.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+      ptrs[e.pointerId] = pos(e);
+      var ids = Object.keys(ptrs);
+      if (ids.length === 2) {
+        var a = ptrs[ids[0]], b = ptrs[ids[1]];
+        pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, sc: s.view.sc, ox: s.view.ox, oy: s.view.oy };
+        gesture = 'pinch';
+      } else if (ids.length === 1) {
+        last = ptrs[e.pointerId];
+        gesture = (s.mode === 'move' || space || e.button === 1 || e.button === 2) ? 'pan' : 'paint';
+        if (gesture === 'paint') { paintCell(cellAt(last.x, last.y), true); afterPaint(); }
+      }
+      setCursor();
+    });
+    cv.addEventListener('pointermove', function (e) {
+      if (!ptrs[e.pointerId]) return;
+      var p = pos(e);
+      ptrs[e.pointerId] = p;
+      if (gesture === 'pinch') {
+        var ids = Object.keys(ptrs);
+        if (ids.length < 2) return;
+        var a = ptrs[ids[0]], b = ptrs[ids[1]];
+        var dd = Math.hypot(a.x - b.x, a.y - b.y) || 1, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+        var sc = Math.max(fitScale() * 0.6, Math.min(MAX_SCALE, pinch.sc * dd / pinch.d));
+        s.view.sc = sc;
+        s.view.ox = mx - (pinch.mx - pinch.ox) * sc / pinch.sc;
+        s.view.oy = my - (pinch.my - pinch.oy) * sc / pinch.sc;
+        clampView(); draw();
+      } else if (gesture === 'pan') {
+        s.view.ox += p.x - last.x; s.view.oy += p.y - last.y; last = p;
+        clampView(); draw();
+      } else if (gesture === 'paint') {
+        paintLine(last.x, last.y, p.x, p.y); last = p; afterPaint();
+      }
+    });
+    function lift(e) {
+      delete ptrs[e.pointerId];
+      var n = Object.keys(ptrs).length;
+      if (n === 0) gesture = null;
+      else if (gesture === 'pinch') gesture = 'none';   // don't paint with the finger left behind
+      setCursor();
+    }
+    cv.addEventListener('pointerup', lift);
+    cv.addEventListener('pointercancel', lift);
+    cv.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+
+    // mouse wheel zooms; trackpad pinch zooms; trackpad two-finger scroll pans
+    cv.addEventListener('wheel', function (e) {
+      if (!s.view) return;
+      e.preventDefault();
+      var p = pos(e);
+      var mouseWheel = e.deltaMode !== 0 || (e.deltaX === 0 && Math.abs(e.deltaY) >= 40 && Math.round(e.deltaY) === e.deltaY);
+      if (e.ctrlKey) zoomAt(p.x, p.y, s.view.sc * Math.exp(-e.deltaY * 0.012));
+      else if (mouseWheel) zoomAt(p.x, p.y, s.view.sc * Math.exp(-e.deltaY * (e.deltaMode ? 0.06 : 0.0018)));
+      else { s.view.ox -= e.deltaX; s.view.oy -= e.deltaY; clampView(); draw(); }
+    }, { passive: false });
+
+    // hold Space to drag the drawing around with the mouse
+    var hover = false;
+    cv.addEventListener('pointerenter', function () { hover = true; });
+    cv.addEventListener('pointerleave', function () { hover = false; });
+    function key(e) {
+      if (e.key !== ' ' || !hover) return;
+      e.preventDefault();
+      space = e.type === 'keydown';
+      setCursor();
+    }
+    document.addEventListener('keydown', key);
+    document.addEventListener('keyup', key);
+
+    /* ---- toolbar ---- */
+    el.querySelector('.palette').addEventListener('click', function (e) {
+      var b = e.target.closest('.swatch');
+      if (!b) return;
+      s.sel = b.getAttribute('data-k'); s.findFrom = 0;
+      el.querySelectorAll('.swatch').forEach(function (x) { x.setAttribute('aria-checked', String(x === b)); });
+      draw();
+    });
+    el.querySelectorAll('.seg-btn').forEach(function (b) {
+      b.addEventListener('click', function () {
+        s.mode = b.getAttribute('data-mode');
+        el.querySelectorAll('.seg-btn').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+        setCursor();
+      });
+    });
+    el.querySelectorAll('.cbn-zoom').forEach(function (b) {
+      b.addEventListener('click', function () { zoomAt(W / 2, H / 2, s.view.sc * (+b.getAttribute('data-z') > 0 ? 1.5 : 1 / 1.5)); });
+    });
+    el.querySelector('.cbn-fit').addEventListener('click', function () { fit(); draw(); });
+    el.querySelector('.cbn-find').addEventListener('click', function () {
+      var n = d.key.length;
+      for (var j = 0; j < n; j++) {
+        var i = (s.findFrom + j) % n;
+        if (d.key[i] === s.sel && !s.filled[i]) {
+          s.findFrom = i + 1;
+          var sc = Math.max(s.view.sc, 22), x = i % d.w, y = Math.floor(i / d.w);
+          s.view.sc = Math.min(MAX_SCALE, sc);
+          s.view.ox = W / 2 - (x + 0.5) * s.view.sc;
+          s.view.oy = H / 2 - (y + 0.5) * s.view.sc;
+          clampView();
+          flashCell(i, '#8ff6ff');
+          return;
+        }
+      }
+    });
+    el.querySelector('.cbn-reset').addEventListener('click', function () {
+      s.filled = new Uint8Array(d.w * d.h);
+      progress(); fit(); draw();
+    });
+
+    function onResize() { size(); }
+    window.addEventListener('resize', onResize);
+    onLeave(function () {
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('keydown', key);
+      document.removeEventListener('keyup', key);
+    });
+
+    progress();
+    setCursor();
+    if (!size()) requestAnimationFrame(function () { size(); });
+  }
 
   /* ---------- Quiz ----------
      5 random questions from the book's pool, answers shuffled.
@@ -755,7 +926,7 @@
       ov.removeAttribute('id');
       ov.style.height = base.offsetHeight + 'px';   // keep the old page's shape while it turns
       stage.appendChild(ov);
-      hydrateArt(ov);
+      copyCanvases(base, ov);
       ov.classList.add('page-overlay', 'flip-out');
       reader.page = n;
       renderPageInto(base, book);
@@ -773,6 +944,67 @@
   }
 
   function turn(dir) { goTo(reader.page + dir); }
+
+  // cloned pages lose their canvas pictures; copy them over
+  function copyCanvases(from, to) {
+    var a = from.querySelectorAll('canvas'), b = to.querySelectorAll('canvas');
+    for (var i = 0; i < a.length && i < b.length; i++) {
+      b[i].width = a[i].width; b[i].height = a[i].height;
+      if (a[i].width && a[i].height) b[i].getContext('2d').drawImage(a[i], 0, 0);
+    }
+  }
+
+  /* Turning a page by hand: the page follows the finger or mouse.
+     Returns { set(progress 0..1), end(commit) } or null at the ends of the book. */
+  function beginDrag(dir) {
+    var book = getBook(reader.id), total = bookPages(book).length, from = reader.page, n = from + dir;
+    if (n < 0 || n >= total || reader.turning) return null;
+    var stage = app.querySelector('.book-stage'), base = document.getElementById('page-base'), ov;
+    stopAudio();
+    reader.turning = true;
+    if (dir > 0) {
+      // lift the current page; the next one is already underneath
+      ov = base.cloneNode(true);
+      ov.removeAttribute('id');
+      ov.style.height = base.offsetHeight + 'px';
+      stage.appendChild(ov);
+      copyCanvases(base, ov);
+      reader.page = n;
+      renderPageInto(base, book);
+    } else {
+      // bring the previous page back over from the left
+      ov = document.createElement('article');
+      stage.appendChild(ov);
+      reader.page = n;
+      renderPageInto(ov, book);
+    }
+    ov.classList.add('page-overlay', 'page-drag');
+    function set(p) {
+      ov.style.transform = 'rotateY(' + (dir > 0 ? -100 * p : -100 * (1 - p)) + 'deg)';
+      ov.style.setProperty('--shade', dir > 0 ? p : 1 - p);
+    }
+    set(0);
+    updateNav(book);
+    return {
+      set: set,
+      end: function (commit) {
+        var finished = false;
+        function fin() {
+          if (finished) return;
+          finished = true;
+          if (dir > 0 && !commit) { reader.page = from; renderPageInto(base, book); }
+          if (dir < 0) { if (commit) renderPageInto(base, book); else reader.page = from; }
+          ov.remove();
+          reader.turning = false;
+          updateNav(book);
+        }
+        ov.classList.add('page-settle');
+        set(commit ? 1 : 0);
+        ov.addEventListener('transitionend', fin, { once: true });
+        setTimeout(fin, 500);
+      }
+    };
+  }
 
   VIEWS.book = function (r) {
     var book = getBook(r.arg);
@@ -815,22 +1047,54 @@
     }
     document.addEventListener('keydown', onKey);
 
-    // swipe to turn (ignored on the coloring grid and during pinch)
-    var sx = null, sy = null, multi = false;
-    stage.addEventListener('touchstart', function (e) {
-      if (e.touches.length > 1) { multi = true; sx = null; return; }
-      if (e.target.closest('.cbn-scroll')) { sx = null; return; }
-      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
-    }, { passive: true });
-    stage.addEventListener('touchend', function (e) {
-      if (e.touches.length === 0 && multi) { multi = false; sx = null; return; }
-      if (sx == null) return;
-      var p = e.changedTouches[0], dx = p.clientX - sx, dy = p.clientY - sy;
-      sx = null;
-      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
-    }, { passive: true });
+    // drag the page sideways with a finger or the mouse; it follows, then
+    // finishes turning (past ~30% or a quick flick) or falls back into place.
+    // Vertical drags still scroll the page; the coloring canvas is left alone.
+    var drag = null;
+    stage.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (reader.turning || e.target.closest('button, a, input, select, textarea, .cbn-view, .answer, .swatch')) return;
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, w: stage.clientWidth, ctl: null, dir: 0, p: 0, lx: e.clientX, t: performance.now(), v: 0 };
+    });
+    function onDragMove(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      var dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+      if (!drag.ctl) {
+        if (Math.abs(dx) < 10 && Math.abs(dy) < 10) return;
+        if (Math.abs(dy) > Math.abs(dx)) { drag = null; return; }
+        drag.dir = dx < 0 ? 1 : -1;
+        drag.ctl = beginDrag(drag.dir);
+        if (!drag.ctl) { drag = null; return; }
+        document.body.classList.add('dragging-page');
+        try { window.getSelection().removeAllRanges(); } catch (err) { /* ignore */ }
+      }
+      var now = performance.now();
+      drag.v = (e.clientX - drag.lx) / Math.max(1, now - drag.t);
+      drag.lx = e.clientX; drag.t = now;
+      drag.p = Math.max(0, Math.min(1, -drag.dir * dx / (drag.w * 0.8)));
+      drag.ctl.set(drag.p);
+    }
+    function onDragEnd(e) {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.ctl) {
+        var flick = -drag.dir * drag.v > 0.45;          // px per ms, in the turning direction
+        drag.ctl.end(drag.p > 0.3 || (flick && drag.p > 0.05));
+        document.body.classList.remove('dragging-page');
+      }
+      drag = null;
+    }
+    window.addEventListener('pointermove', onDragMove);
+    window.addEventListener('pointerup', onDragEnd);
+    window.addEventListener('pointercancel', onDragEnd);
 
-    onLeave(function () { document.removeEventListener('keydown', onKey); stopAudio(); });
+    onLeave(function () {
+      document.removeEventListener('keydown', onKey);
+      window.removeEventListener('pointermove', onDragMove);
+      window.removeEventListener('pointerup', onDragEnd);
+      window.removeEventListener('pointercancel', onDragEnd);
+      document.body.classList.remove('dragging-page');
+      stopAudio();
+    });
   };
 
   /* ---------- placeholder sections (built in a later step) ---------- */
