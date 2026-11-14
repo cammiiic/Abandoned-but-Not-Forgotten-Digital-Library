@@ -234,6 +234,35 @@
       '</section>';
   };
 
+  /* ---------- Library ---------- */
+
+  function coverCard(b) {
+    return '<a class="cover-card" href="#/book/' + esc(b.id) + '" style="--cover:' + esc(b.cover) + '">' +
+      '<span class="cover-spine" aria-hidden="true"></span>' +
+      artCanvas(b.id, 'cover-art') +
+      '<span class="cover-title">' + esc(L(b.title)) + '</span>' +
+      '<span class="cover-sub">' + esc(L(b.subtitle)) + '</span>' +
+      (b.placeholder ? '<span class="badge cover-badge">' + esc(t('comingSoon')) + '</span>' : '') +
+    '</a>';
+  }
+
+  VIEWS.library = function () {
+    var groups = [{ body: 'moon', label: t('moon') }, { body: 'mars', label: t('mars') }];
+    app.innerHTML =
+      '<section class="library">' +
+        '<h1 class="h1">' + esc(t('libraryTitle')) + '</h1>' +
+        '<p class="lead">' + esc(t('libraryIntro')) + '</p>' +
+        groups.map(function (g) {
+          var list = DATA.books.filter(function (b) { return b.body === g.body; });
+          return '<div class="shelf-group">' +
+            '<h2 class="h2 shelf-label"><canvas class="pix shelf-icon" data-orb="' + g.body + '" aria-hidden="true"></canvas>' + esc(g.label) + '</h2>' +
+            '<div class="shelf">' + list.map(coverCard).join('') + '</div>' +
+            '<div class="shelf-board" aria-hidden="true"></div>' +
+          '</div>';
+        }).join('') +
+      '</section>';
+  };
+
   /* ---------- placeholder sections (built in a later step) ---------- */
 
   function placeholderView(titleKey, introKey) {
