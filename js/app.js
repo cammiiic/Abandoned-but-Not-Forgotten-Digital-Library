@@ -263,6 +263,239 @@
       '</section>';
   };
 
+  /* ---------- Book reader ----------
+     Pages: cover -> 5 story pages -> color-by-number -> quiz -> back cover.
+     Each page type registers in PAGES with html() and an optional hydrate(). */
+
+  var PAGES = {};
+  var reader = { id: null, page: 0, turning: false };
+  var currentAudio = null;
+  var audioOK = {};   // narration src -> true (exists) / false (missing)
+
+  function bookPages(book) {
+    var list = [{ type: 'cover' }];
+    book.pages.forEach(function (p, i) { list.push({ type: 'story', i: i }); });
+    ['color', 'quiz'].forEach(function (k) { if (PAGES[k]) list.push({ type: k }); });
+    list.push({ type: 'back' });
+    return list;
+  }
+
+  PAGES.cover = {
+    cls: 'page-cover',
+    html: function (book) {
+      return '<div class="cover-inner">' +
+        '<p class="cover-kicker">' + esc(t(book.body === 'moon' ? 'coverKickerMoon' : 'coverKickerMars')) + '</p>' +
+        '<h1 class="book-title">' + esc(L(book.title)) + '</h1>' +
+        artCanvas(book.id, 'book-cover-art', L(book.craftName)) +
+        '<p class="book-sub">' + esc(L(book.subtitle)) + '</p>' +
+        '<button type="button" class="btn js-next">' + esc(t('openBook')) + ' &#9654;</button>' +
+      '</div>';
+    }
+  };
+
+  PAGES.story = {
+    cls: 'page-paper',
+    html: function (book, pg) {
+      var p = book.pages[pg.i];
+      var note = pending(p.text);
+      return '<header class="page-head">' +
+          '<span class="page-kicker">' + esc(t('part', { n: pg.i + 1 })) + '</span>' +
+          '<h2 class="page-title">' + esc(L(p.title)) + '</h2>' +
+          '<button type="button" class="btn btn-small btn-audio" hidden aria-pressed="false">' +
+            '<span class="audio-icon" aria-hidden="true">&#9654;</span><span class="audio-label">' + esc(t('listen')) + '</span></button>' +
+        '</header>' +
+        (note ? '<p class="pending-note">' + esc(t('translationPending')) + '</p>' : '') +
+        '<div class="story"' + (note ? ' lang="en"' : '') + '>' + paragraphs(L(p.text)) + '</div>' +
+        '<footer class="folio">' + (pg.i + 1) + '</footer>';
+    },
+    hydrate: function (el, book, pg) {
+      setupAudio(el, 'audio/' + book.id + '-p' + (pg.i + 1) + '-' + state.lang + '.m4a');
+    }
+  };
+
+  PAGES.back = {
+    cls: 'page-back',
+    html: function (book) {
+      return '<div class="back-inner">' +
+        artCanvas(book.id, 'back-art') +
+        '<p class="back-text">' + esc(book.backText ? L(book.backText) : t('backCover')) + '</p>' +
+        '<div class="back-actions">' +
+          '<button type="button" class="btn js-restart">' + esc(t('readAgain')) + '</button>' +
+          '<a class="btn btn-ghost" href="#/library">' + esc(t('backToLibrary')) + '</a>' +
+        '</div>' +
+      '</div>';
+    }
+  };
+
+  /* narration: the button stays hidden unless the file is found */
+
+  function stopAudio() {
+    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  }
+
+  function setupAudio(pageEl, src) {
+    var btn = pageEl.querySelector('.btn-audio');
+    stopAudio();
+    if (!btn || audioOK[src] === false) return;
+    var a = new Audio();
+    a.preload = 'metadata';
+    function show() { audioOK[src] = true; btn.hidden = false; }
+    function hide() { audioOK[src] = false; btn.hidden = true; if (currentAudio === a) currentAudio = null; }
+    function sync(playing) {
+      btn.setAttribute('aria-pressed', String(playing));
+      btn.querySelector('.audio-icon').innerHTML = playing ? 'II' : '&#9654;';
+      btn.querySelector('.audio-label').textContent = t(playing ? 'pause' : 'listen');
+    }
+    a.addEventListener('loadedmetadata', show);
+    a.addEventListener('error', hide);
+    a.addEventListener('play', function () { sync(true); });
+    a.addEventListener('pause', function () { sync(false); });
+    a.addEventListener('ended', function () { a.currentTime = 0; sync(false); });
+    btn.addEventListener('click', function () {
+      if (a.paused) { var p = a.play(); if (p && p.catch) p.catch(function () { /* blocked or missing */ }); }
+      else a.pause();
+    });
+    a.src = src;
+    currentAudio = a;
+    if (audioOK[src]) { show(); return; }
+    // Some phones never preload metadata, so also ask the server directly
+    if (/^https?:/.test(location.protocol) && window.fetch) {
+      fetch(src, { method: 'HEAD' }).then(function (r) { if (r.ok) show(); else hide(); }).catch(function () {});
+    }
+  }
+
+  /* page rendering and turning */
+
+  function renderPageInto(el, book) {
+    var pg = bookPages(book)[reader.page];
+    var def = PAGES[pg.type];
+    el.className = 'page ' + (def.cls || '');
+    el.setAttribute('data-type', pg.type);
+    el.style.setProperty('--cover', book.cover);
+    el.innerHTML = def.html(book, pg);
+    hydrateArt(el);
+    if (def.hydrate) def.hydrate(el, book, pg);
+  }
+
+  function updateNav(book) {
+    var total = bookPages(book).length, i = reader.page, dots = '';
+    for (var k = 0; k < total; k++) dots += '<span class="dot' + (k === i ? ' on' : '') + '"></span>';
+    app.querySelector('.js-prev').disabled = i === 0;
+    app.querySelector('.js-nextnav').disabled = i === total - 1;
+    app.querySelector('.page-count').textContent = t('pageOf', { n: i + 1, t: total });
+    app.querySelector('.page-dots').innerHTML = dots;
+  }
+
+  function afterAnim(el, fn) {
+    var fired = false;
+    function go() {
+      if (fired) return;
+      fired = true;
+      if (el.isConnected) fn();
+      reader.turning = false;
+    }
+    el.addEventListener('animationend', go, { once: true });
+    setTimeout(go, 900);
+  }
+
+  function goTo(n) {
+    var book = getBook(reader.id);
+    var total = bookPages(book).length;
+    if (n < 0 || n >= total || n === reader.page || reader.turning) return;
+    var forward = n > reader.page;
+    var stage = app.querySelector('.book-stage');
+    var base = document.getElementById('page-base');
+    stopAudio();
+
+    if (REDUCED) {
+      reader.page = n; renderPageInto(base, book); updateNav(book);
+      return;
+    }
+    reader.turning = true;
+    var ov;
+    if (forward) {
+      // the old page lifts off the stack and turns over to the left
+      ov = base.cloneNode(true);
+      ov.removeAttribute('id');
+      stage.appendChild(ov);
+      hydrateArt(ov);
+      ov.classList.add('page-overlay', 'flip-out');
+      reader.page = n;
+      renderPageInto(base, book);
+      afterAnim(ov, function () { ov.remove(); });
+    } else {
+      // the previous page turns back over from the left
+      ov = document.createElement('article');
+      stage.appendChild(ov);
+      reader.page = n;
+      renderPageInto(ov, book);
+      ov.classList.add('page-overlay', 'flip-in');
+      afterAnim(ov, function () { renderPageInto(base, book); ov.remove(); });
+    }
+    updateNav(book);
+  }
+
+  function turn(dir) { goTo(reader.page + dir); }
+
+  VIEWS.book = function (r) {
+    var book = getBook(r.arg);
+    if (!book) { location.replace('#/library'); return; }
+    if (reader.id !== book.id) { reader.id = book.id; reader.page = 0; }
+    reader.turning = false;
+
+    app.innerHTML =
+      '<section class="reader" aria-label="' + esc(L(book.title)) + '">' +
+        '<div class="reader-top">' +
+          '<a class="btn btn-small btn-ghost" href="#/library">&#9664; ' + esc(t('backToLibrary')) + '</a>' +
+          '<span class="page-count" aria-live="polite"></span>' +
+        '</div>' +
+        '<div class="book-stage"><article class="page" id="page-base"></article></div>' +
+        '<div class="reader-nav">' +
+          '<button type="button" class="btn js-prev">&#9664; ' + esc(t('prev')) + '</button>' +
+          '<div class="page-dots" aria-hidden="true"></div>' +
+          '<button type="button" class="btn js-nextnav">' + esc(t('next')) + ' &#9654;</button>' +
+        '</div>' +
+        '<p class="reader-hint">' + esc(t('readerHint')) + '</p>' +
+      '</section>';
+
+    var stage = app.querySelector('.book-stage');
+    renderPageInto(document.getElementById('page-base'), book);
+    updateNav(book);
+
+    app.querySelector('.js-prev').addEventListener('click', function () { turn(-1); });
+    app.querySelector('.js-nextnav').addEventListener('click', function () { turn(1); });
+    stage.addEventListener('click', function (e) {
+      if (e.target.closest('.js-next')) turn(1);
+      else if (e.target.closest('.js-restart')) goTo(0);
+    });
+
+    function onKey(e) {
+      if (e.altKey || e.ctrlKey || e.metaKey) return;
+      var tag = (e.target.tagName || '').toLowerCase();
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+      if (e.key === 'ArrowRight') { e.preventDefault(); turn(1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); turn(-1); }
+    }
+    document.addEventListener('keydown', onKey);
+
+    // swipe to turn (ignored on the coloring grid and during pinch)
+    var sx = null, sy = null, multi = false;
+    stage.addEventListener('touchstart', function (e) {
+      if (e.touches.length > 1) { multi = true; sx = null; return; }
+      if (e.target.closest('.cbn-scroll')) { sx = null; return; }
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    stage.addEventListener('touchend', function (e) {
+      if (e.touches.length === 0 && multi) { multi = false; sx = null; return; }
+      if (sx == null) return;
+      var p = e.changedTouches[0], dx = p.clientX - sx, dy = p.clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) turn(dx < 0 ? 1 : -1);
+    }, { passive: true });
+
+    onLeave(function () { document.removeEventListener('keydown', onKey); stopAudio(); });
+  };
+
   /* ---------- placeholder sections (built in a later step) ---------- */
 
   function placeholderView(titleKey, introKey) {
