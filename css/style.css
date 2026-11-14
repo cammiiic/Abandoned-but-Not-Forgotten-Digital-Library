@@ -398,3 +398,41 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   background: var(--gold); color: var(--ink); border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
 }
 /* end:cbn */
+
+/* ---------- quiz ---------- */
+
+.q-count { font-family: var(--font-pixel); font-size: 10px; color: var(--rust); margin: 8px 0 10px; }
+.q-text { font-size: 28px; line-height: 1.2; margin: 0 0 16px; }
+.answers { display: grid; gap: 10px; margin-bottom: 16px; }
+.answer {
+  display: flex; align-items: center; gap: 12px; width: 100%; text-align: left;
+  font-family: var(--font-body); font-size: 23px; line-height: 1.1; color: var(--paper-ink);
+  background: #fffaf0; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink);
+  padding: 8px 12px 8px 8px; min-height: 48px; cursor: pointer;
+}
+.answer:hover:not([disabled]) { background: #fff2c2; }
+.answer:active:not([disabled]) { transform: translate(4px, 4px); box-shadow: none; }
+.answer[disabled] { cursor: default; opacity: .7; }
+.a-letter {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; font-family: var(--font-pixel); font-size: 11px;
+  background: var(--night-2); color: var(--gold); border: 2px solid var(--ink);
+}
+.answer.right { background: #c9f0d3; opacity: 1; }
+.answer.right .a-letter { background: var(--ok); color: var(--ink); }
+.answer.wrong { background: #ffd0c4; opacity: 1; }
+.answer.wrong .a-letter { background: var(--bad); color: #fff; }
+.q-feedback { font-size: 23px; margin: 0 0 14px; padding: 8px 12px; border: 3px solid var(--ink); }
+.q-feedback.ok { background: #c9f0d3; }
+.q-feedback.bad { background: #ffe1d8; }
+
+.quiz-score { text-align: center; padding: 20px 0; }
+.score-big { font-family: var(--font-pixel); font-size: clamp(14px, 3.6vw, 20px); line-height: 1.6; color: var(--paper-ink); margin: 14px 0 8px; }
+.quiz-score p { font-size: 24px; }
+.score-stars { display: flex; justify-content: center; gap: 10px; }
+.score-stars span {
+  width: 28px; height: 28px; background: var(--paper-2); border: 3px solid var(--ink);
+  clip-path: polygon(50% 0, 62% 36%, 100% 36%, 69% 58%, 80% 100%, 50% 74%, 20% 100%, 31% 58%, 0 36%, 38% 36%);
+}
+.score-stars span.on { background: var(--gold); }
+/* end:quiz */

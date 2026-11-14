@@ -543,6 +543,95 @@
     }
   };
 
+  /* ---------- Quiz ----------
+     5 random questions from the book's pool, answers shuffled.
+     State stores indexes only, so switching language keeps progress. */
+
+  var QUIZ_LEN = 5;
+  var quizState = {};
+
+  function newQuiz(book) {
+    var idx = shuffle(book.quiz.map(function (_, i) { return i; })).slice(0, Math.min(QUIZ_LEN, book.quiz.length));
+    return {
+      items: idx.map(function (qi) {
+        return { q: qi, order: shuffle(book.quiz[qi].answers.map(function (_, j) { return j; })), pick: null };
+      }),
+      cur: 0,
+      done: false
+    };
+  }
+
+  function drawQuiz(body, book) {
+    var qs = quizState[book.id], total = qs.items.length;
+
+    if (qs.done) {
+      var score = qs.items.filter(function (it) { return it.pick === book.quiz[it.q].correct; }).length;
+      var msg = score === total ? 'scorePerfect' : score >= Math.ceil(total * 0.6) ? 'scoreGood' : 'scoreTryAgain';
+      body.innerHTML =
+        '<div class="quiz-score" role="status">' +
+          '<div class="score-stars" aria-hidden="true">' +
+            qs.items.map(function (it) { return '<span class="' + (it.pick === book.quiz[it.q].correct ? 'on' : '') + '"></span>'; }).join('') +
+          '</div>' +
+          '<p class="score-big">' + esc(t('score', { s: score, t: total })) + '</p>' +
+          '<p>' + esc(t(msg)) + '</p>' +
+          '<button type="button" class="btn js-newq">' + esc(t('newQuestions')) + '</button>' +
+        '</div>';
+      return;
+    }
+
+    var it = qs.items[qs.cur], q = book.quiz[it.q], answered = it.pick !== null;
+    var ok = answered && it.pick === q.correct;
+    body.innerHTML =
+      '<p class="q-count">' + esc(t('questionOf', { n: qs.cur + 1, t: total })) + '</p>' +
+      '<p class="q-text">' + esc(L(q.q)) + '</p>' +
+      '<div class="answers">' +
+        it.order.map(function (j, n) {
+          var cls = !answered ? '' : j === q.correct ? ' right' : j === it.pick ? ' wrong' : '';
+          return '<button type="button" class="answer' + cls + '" data-j="' + j + '"' + (answered ? ' disabled' : '') + '>' +
+            '<span class="a-letter" aria-hidden="true">' + 'ABCDEF'[n] + '</span>' + esc(L(q.answers[j])) + '</button>';
+        }).join('') +
+      '</div>' +
+      (answered
+        ? '<p class="q-feedback ' + (ok ? 'ok' : 'bad') + '" role="status">' +
+            esc(ok ? t('correct') : t('wrong', { a: L(q.answers[q.correct]) })) + '</p>' +
+          '<button type="button" class="btn js-nextq">' + esc(t(qs.cur === total - 1 ? 'seeScore' : 'nextQuestion')) + '</button>'
+        : '');
+  }
+
+  PAGES.quiz = {
+    cls: 'page-paper page-activity',
+    html: function () {
+      return '<header class="page-head">' +
+          '<span class="page-kicker">' + esc(t('activity')) + '</span>' +
+          '<h2 class="page-title">' + esc(t('quizTitle')) + '</h2>' +
+        '</header>' +
+        '<p class="help">' + esc(t('quizHelp')) + '</p>' +
+        '<div class="quiz-body"></div>';
+    },
+    hydrate: function (el, book) {
+      var body = el.querySelector('.quiz-body');
+      if (!quizState[book.id]) quizState[book.id] = newQuiz(book);
+      drawQuiz(body, book);
+      body.addEventListener('click', function (e) {
+        var qs = quizState[book.id], focusSel = null;
+        var a = e.target.closest('.answer');
+        if (a && !a.disabled) {
+          qs.items[qs.cur].pick = +a.getAttribute('data-j');
+          focusSel = '.js-nextq';
+        } else if (e.target.closest('.js-nextq')) {
+          if (qs.cur < qs.items.length - 1) qs.cur++; else qs.done = true;
+          focusSel = qs.done ? '.js-newq' : '.answer';
+        } else if (e.target.closest('.js-newq')) {
+          quizState[book.id] = newQuiz(book);
+          focusSel = '.answer';
+        } else return;
+        drawQuiz(body, book);
+        var f = body.querySelector(focusSel);
+        if (f) f.focus({ preventScroll: true });
+      });
+    }
+  };
+
   /* page rendering and turning */
 
   function renderPageInto(el, book) {
