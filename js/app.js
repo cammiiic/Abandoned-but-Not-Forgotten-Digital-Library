@@ -338,13 +338,37 @@
   var currentAudio = null;
   var audioOK = {};   // narration src -> true (exists) / false (missing)
 
+  // cover, contents, 5 story pages, coloring, quiz, back cover (10 = 5 sheets of paper)
   function bookPages(book) {
-    var list = [{ type: 'cover' }];
+    var list = [{ type: 'cover' }, { type: 'contents' }];
     book.pages.forEach(function (p, i) { list.push({ type: 'story', i: i }); });
     ['color', 'quiz'].forEach(function (k) { if (PAGES[k]) list.push({ type: k }); });
     list.push({ type: 'back' });
+    list.forEach(function (pg, n) { pg.n = n; });
     return list;
   }
+
+  PAGES.contents = {
+    cls: 'page-paper page-contents',
+    html: function (book) {
+      var rows = bookPages(book).map(function (pg) {
+        var label = pg.type === 'story' ? t('part', { n: pg.i + 1 }) + ': ' + L(book.pages[pg.i].title)
+          : pg.type === 'color' ? t('colorTitle')
+          : pg.type === 'quiz' ? t('quizTitle') : null;
+        if (!label) return '';
+        return '<li><button type="button" class="toc-link js-goto" data-n="' + pg.n + '">' +
+          '<span class="toc-label">' + esc(label) + '</span><span class="toc-dots" aria-hidden="true"></span>' +
+          '<span class="toc-n">' + (pg.n + 1) + '</span></button></li>';
+      }).join('');
+      return '<div class="contents-inner">' +
+        artCanvas(book.id, 'contents-art') +
+        '<p class="page-kicker">' + esc(t('contents')) + '</p>' +
+        '<h2 class="page-title">' + esc(L(book.title)) + '</h2>' +
+        '<p class="contents-sub">' + esc(L(book.subtitle)) + '</p>' +
+        '<ol class="toc">' + rows + '</ol>' +
+      '</div>';
+    }
+  };
 
   PAGES.cover = {
     cls: 'page-cover',
@@ -372,7 +396,7 @@
         '</header>' +
         (note ? '<p class="pending-note">' + esc(t('translationPending')) + '</p>' : '') +
         '<div class="story"' + (note ? ' lang="en"' : '') + '>' + paragraphs(L(p.text)) + '</div>' +
-        '<footer class="folio">' + (pg.i + 1) + '</footer>';
+        '<footer class="folio">' + (pg.n + 1) + '</footer>';
     },
     hydrate: function (el, book, pg) {
       setupAudio(el, 'audio/' + book.id + '-p' + (pg.i + 1) + '-' + state.lang + '.m4a');
@@ -719,6 +743,7 @@
     cv.addEventListener('pointerenter', function () { hover = true; });
     cv.addEventListener('pointerleave', function () { hover = false; });
     function key(e) {
+      if (!cv.isConnected) { unbind(); return; }
       if (e.key !== ' ' || !hover) return;
       e.preventDefault();
       space = e.type === 'keydown';
@@ -767,13 +792,15 @@
       progress(); fit(); draw();
     });
 
-    function onResize() { size(); }
-    window.addEventListener('resize', onResize);
-    onLeave(function () {
+    // pages are re-drawn while turning; a canvas that left the page unhooks itself
+    function onResize() { if (!cv.isConnected) unbind(); else size(); }
+    function unbind() {
       window.removeEventListener('resize', onResize);
       document.removeEventListener('keydown', key);
       document.removeEventListener('keyup', key);
-    });
+    }
+    window.addEventListener('resize', onResize);
+    onLeave(unbind);
 
     progress();
     setCursor();
@@ -871,10 +898,14 @@
 
   /* page rendering and turning */
 
-  function renderPageInto(el, book) {
-    var pg = bookPages(book)[reader.page];
+  // render page number idx (default: the current page) into el; out of range = blank
+  function renderPageInto(el, book, idx, side) {
+    if (idx == null) idx = reader.page;
+    var pg = bookPages(book)[idx];
+    var sideCls = side ? ' leaf leaf-' + side : '';
+    if (!pg) { el.className = 'page leaf-empty' + sideCls; el.innerHTML = ''; el.removeAttribute('data-type'); return; }
     var def = PAGES[pg.type];
-    el.className = 'page ' + (def.cls || '');
+    el.className = 'page ' + (def.cls || '') + sideCls;
     el.setAttribute('data-type', pg.type);
     el.style.setProperty('--cover', book.cover);
     el.innerHTML = def.html(book, pg);
@@ -883,12 +914,125 @@
   }
 
   function updateNav(book) {
-    var total = bookPages(book).length, i = reader.page, dots = '';
-    for (var k = 0; k < total; k++) dots += '<span class="dot' + (k === i ? ' on' : '') + '"></span>';
-    app.querySelector('.js-prev').disabled = i === 0;
-    app.querySelector('.js-nextnav').disabled = i === total - 1;
-    app.querySelector('.page-count').textContent = t('pageOf', { n: i + 1, t: total });
+    var total = bookPages(book).length, i = reader.page, dots = '', label, first, last;
+    if (isSpread()) {
+      var k = spreadK(), a = 2 * k - 1, b = 2 * k;
+      first = k === 0; last = k === maxSpread(book);
+      var vis = [a, b].filter(function (n) { return n >= 0 && n < total; });
+      label = vis.length === 2 ? t('pagesOf', { a: a + 1, b: b + 1, t: total }) : t('pageOf', { n: vis[0] + 1, t: total });
+      for (var j = 0; j < total; j++) dots += '<span class="dot' + (vis.indexOf(j) !== -1 ? ' on' : '') + '"></span>';
+    } else {
+      first = i === 0; last = i === total - 1;
+      label = t('pageOf', { n: i + 1, t: total });
+      for (var m = 0; m < total; m++) dots += '<span class="dot' + (m === i ? ' on' : '') + '"></span>';
+    }
+    app.querySelector('.js-prev').disabled = first;
+    app.querySelector('.js-nextnav').disabled = last;
+    app.querySelector('.page-count').textContent = label;
     app.querySelector('.page-dots').innerHTML = dots;
+  }
+
+  /* ---------- two-page spreads (wide screens) ----------
+     Pages pair up into sheets of paper: (cover, contents), (part 1, part 2)…
+     Spread k shows page 2k-1 on the left and 2k on the right; k = 0 is the
+     closed front cover and the last spread is the closed back cover.
+     Turning lifts the right-hand sheet: its front is the page you were
+     reading, its back lands face up on the left, and the next page is
+     already waiting underneath.                                          */
+
+  var SPREAD_MQ = window.matchMedia ? window.matchMedia('(min-width: 900px)') : null;
+  function isSpread() { return !!(SPREAD_MQ && SPREAD_MQ.matches && app.querySelector('.book-stage.spread')); }
+  function spreadK() { return reader.page === 0 ? 0 : Math.floor((reader.page + 1) / 2); }
+  function maxSpread(book) { return Math.ceil(bookPages(book).length / 2); }
+  function firstOfSpread(k) { return k === 0 ? 0 : 2 * k - 1; }
+
+  function setClosed(stage, book, k) {
+    stage.classList.toggle('closed-front', k === 0);
+    stage.classList.toggle('closed-back', k === maxSpread(book));
+  }
+
+  function renderSpread(book) {
+    var k = spreadK(), stage = app.querySelector('.book-stage');
+    renderPageInto(document.getElementById('page-left'), book, 2 * k - 1, 'l');
+    renderPageInto(document.getElementById('page-right'), book, 2 * k, 'r');
+    setClosed(stage, book, k);
+  }
+
+  function beginSheet(dir) {
+    var book = getBook(reader.id), k = spreadK(), nk = k + dir;
+    if (nk < 0 || nk > maxSpread(book) || reader.turning) return null;
+    var stage = app.querySelector('.book-stage');
+    var left = document.getElementById('page-left'), right = document.getElementById('page-right');
+    var from = reader.page;
+    reader.turning = true;
+
+    var sheet = document.createElement('div');
+    sheet.className = 'sheet';
+    sheet.innerHTML = '<div class="face face-front"><article></article></div><div class="face face-back"><article></article></div>';
+    stage.appendChild(sheet);
+    var front = sheet.querySelector('.face-front article'), back = sheet.querySelector('.face-back article');
+
+    if (dir > 0) {
+      renderPageInto(front, book, 2 * k, 'r');          // the page being lifted
+      renderPageInto(back, book, 2 * k + 1, 'l');       // what's printed on its back
+      renderPageInto(right, book, 2 * k + 2, 'r');      // revealed underneath
+    } else {
+      renderPageInto(back, book, 2 * k - 1, 'l');       // the left page being lifted back
+      renderPageInto(front, book, 2 * k - 2, 'r');
+      renderPageInto(left, book, 2 * k - 3, 'l');       // revealed underneath
+    }
+    reader.page = firstOfSpread(nk);
+
+    function set(p) {
+      sheet.style.transform = 'rotateY(' + (dir > 0 ? -180 * p : -180 * (1 - p)) + 'deg)';
+      sheet.style.setProperty('--shade', (Math.sin(p * Math.PI) * 0.7).toFixed(3));
+    }
+    set(0);
+    updateNav(book);
+
+    return {
+      set: set,
+      end: function (commit) {
+        var finished = false;
+        function fin() {
+          if (finished) return;
+          finished = true;
+          if (commit) {
+            if (dir > 0) renderPageInto(left, book, 2 * k + 1, 'l');
+            else renderPageInto(right, book, 2 * k - 2, 'r');
+          } else {
+            reader.page = from;
+            if (dir > 0) renderPageInto(right, book, 2 * k, 'r');
+            else renderPageInto(left, book, 2 * k - 1, 'l');
+            setClosed(stage, book, k);
+          }
+          sheet.remove();
+          reader.turning = false;
+          updateNav(book);
+        }
+        if (commit) setClosed(stage, book, nk);       // the book slides open / closed as it turns
+        sheet.classList.add('sheet-settle');
+        set(commit ? 1 : 0);
+        sheet.addEventListener('transitionend', function (e) { if (e.target === sheet) fin(); });
+        setTimeout(fin, REDUCED ? 0 : 750);
+      }
+    };
+  }
+
+  function spreadGo(n) {
+    var book = getBook(reader.id), k = spreadK();
+    var nk = n === 0 ? 0 : Math.floor((n + 1) / 2);
+    if (nk === k || reader.turning) return;
+    var stage = app.querySelector('.book-stage');
+    if (stage.getBoundingClientRect().top < 0) stage.scrollIntoView({ block: 'start' });
+    if (Math.abs(nk - k) === 1 && !REDUCED) {
+      var c = beginSheet(nk > k ? 1 : -1);
+      if (c) requestAnimationFrame(function () { requestAnimationFrame(function () { c.end(true); }); });
+    } else {
+      reader.page = firstOfSpread(nk);
+      renderSpread(book);
+      updateNav(book);
+    }
   }
 
   function afterAnim(el, fn) {
@@ -906,7 +1050,9 @@
   function goTo(n) {
     var book = getBook(reader.id);
     var total = bookPages(book).length;
-    if (n < 0 || n >= total || n === reader.page || reader.turning) return;
+    if (n < 0 || n >= total || reader.turning) return;
+    if (isSpread()) { spreadGo(n); return; }
+    if (n === reader.page) return;
     var forward = n > reader.page;
     var stage = app.querySelector('.book-stage');
     var base = document.getElementById('page-base');
@@ -943,7 +1089,14 @@
     updateNav(book);
   }
 
-  function turn(dir) { goTo(reader.page + dir); }
+  function turn(dir) {
+    if (isSpread()) {
+      var k = spreadK() + dir;
+      if (k >= 0 && k <= maxSpread(getBook(reader.id))) spreadGo(firstOfSpread(k));
+      return;
+    }
+    goTo(reader.page + dir);
+  }
 
   // cloned pages lose their canvas pictures; copy them over
   function copyCanvases(from, to) {
@@ -957,6 +1110,7 @@
   /* Turning a page by hand: the page follows the finger or mouse.
      Returns { set(progress 0..1), end(commit) } or null at the ends of the book. */
   function beginDrag(dir) {
+    if (isSpread()) return beginSheet(dir);
     var book = getBook(reader.id), total = bookPages(book).length, from = reader.page, n = from + dir;
     if (n < 0 || n >= total || reader.turning) return null;
     var stage = app.querySelector('.book-stage'), base = document.getElementById('page-base'), ov;
@@ -1011,14 +1165,18 @@
     if (!book) { location.replace('#/library'); return; }
     if (reader.id !== book.id) { reader.id = book.id; reader.page = 0; }
     reader.turning = false;
+    var wide = !!(SPREAD_MQ && SPREAD_MQ.matches);
+    if (wide) reader.page = firstOfSpread(spreadK());
 
     app.innerHTML =
-      '<section class="reader" aria-label="' + esc(L(book.title)) + '">' +
+      '<section class="reader' + (wide ? ' is-spread' : '') + '" aria-label="' + esc(L(book.title)) + '">' +
         '<div class="reader-top">' +
           '<a class="btn btn-small btn-ghost" href="#/library">&#9664; ' + esc(t('backToLibrary')) + '</a>' +
           '<span class="page-count" aria-live="polite"></span>' +
         '</div>' +
-        '<div class="book-stage"><article class="page" id="page-base"></article></div>' +
+        (wide
+          ? '<div class="book-stage spread"><article class="page" id="page-left"></article><article class="page" id="page-right"></article></div>'
+          : '<div class="book-stage"><article class="page" id="page-base"></article></div>') +
         '<div class="reader-nav">' +
           '<button type="button" class="btn js-prev">&#9664; ' + esc(t('prev')) + '</button>' +
           '<div class="page-dots" aria-hidden="true"></div>' +
@@ -1028,15 +1186,25 @@
       '</section>';
 
     var stage = app.querySelector('.book-stage');
-    renderPageInto(document.getElementById('page-base'), book);
+    if (wide) renderSpread(book);
+    else renderPageInto(document.getElementById('page-base'), book);
     updateNav(book);
 
     app.querySelector('.js-prev').addEventListener('click', function () { turn(-1); });
     app.querySelector('.js-nextnav').addEventListener('click', function () { turn(1); });
     stage.addEventListener('click', function (e) {
+      var go = e.target.closest('.js-goto');
       if (e.target.closest('.js-next')) turn(1);
       else if (e.target.closest('.js-restart')) goTo(0);
+      else if (go) goTo(+go.getAttribute('data-n'));
     });
+
+    // switch between one page and two-page spreads when the window size changes
+    function onMode() { if (!reader.turning) render(); }
+    if (SPREAD_MQ) {
+      if (SPREAD_MQ.addEventListener) SPREAD_MQ.addEventListener('change', onMode);
+      else SPREAD_MQ.addListener(onMode);
+    }
 
     function onKey(e) {
       if (e.altKey || e.ctrlKey || e.metaKey) return;
@@ -1054,7 +1222,7 @@
     stage.addEventListener('pointerdown', function (e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       if (reader.turning || e.target.closest('button, a, input, select, textarea, .cbn-view, .answer, .swatch')) return;
-      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, w: stage.clientWidth, ctl: null, dir: 0, p: 0, lx: e.clientX, t: performance.now(), v: 0 };
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, w: stage.clientWidth * (wide ? 0.6 : 1), ctl: null, dir: 0, p: 0, lx: e.clientX, t: performance.now(), v: 0 };
     });
     function onDragMove(e) {
       if (!drag || e.pointerId !== drag.id) return;
@@ -1092,6 +1260,10 @@
       window.removeEventListener('pointermove', onDragMove);
       window.removeEventListener('pointerup', onDragEnd);
       window.removeEventListener('pointercancel', onDragEnd);
+      if (SPREAD_MQ) {
+        if (SPREAD_MQ.removeEventListener) SPREAD_MQ.removeEventListener('change', onMode);
+        else SPREAD_MQ.removeListener(onMode);
+      }
       document.body.classList.remove('dragging-page');
       stopAudio();
     });
