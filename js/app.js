@@ -85,13 +85,37 @@
       (label ? ' role="img" aria-label="' + esc(label) + '"' : ' aria-hidden="true"') + '></canvas>';
   }
 
-  // Draw every [data-art] / [data-orb] canvas inside root
+  // Draw every [data-art] / [data-orb] canvas inside root.
+  // Detailed 64px sprites (js/sprites.js) are used when available;
+  // the simple grid in books.js is the fallback (and the coloring page).
+  var SPRITES = window.ABNF_SPRITES;
+  var frame = 0;
+
+  function spriteId(c) {
+    var orb = c.getAttribute('data-orb');
+    return orb ? 'orb:' + orb : c.getAttribute('data-art');
+  }
+
+  function drawCanvas(c) {
+    var id = spriteId(c);
+    if (SPRITES && SPRITES.has(id)) { SPRITES.draw(c, id, frame); return; }
+    if (c.hasAttribute('data-orb')) { drawOrb(c, c.getAttribute('data-orb')); return; }
+    var b = getBook(id);
+    if (b) drawArt(c, b.art);
+  }
+
   function hydrateArt(root) {
-    root.querySelectorAll('canvas[data-art]').forEach(function (c) {
-      var b = getBook(c.getAttribute('data-art'));
-      if (b) drawArt(c, b.art);
-    });
-    root.querySelectorAll('canvas[data-orb]').forEach(function (c) { drawOrb(c, c.getAttribute('data-orb')); });
+    root.querySelectorAll('canvas[data-art], canvas[data-orb]').forEach(drawCanvas);
+  }
+
+  // idle animation: blinking beacons, twinkling stars, the GRAIL link
+  function startAnimation() {
+    if (REDUCED || !SPRITES) return;
+    setInterval(function () {
+      if (document.hidden) return;
+      frame = (frame + 1) % SPRITES.FRAMES;
+      document.querySelectorAll('canvas[data-art], canvas[data-orb]').forEach(drawCanvas);
+    }, 450);
   }
 
   /* ---------- night sky ---------- */
@@ -160,6 +184,24 @@
     box.innerHTML = html;
   }
 
+  // an occasional shooting star
+  function startMeteors() {
+    var box = document.getElementById('meteors');
+    if (!box || REDUCED) return;
+    (function next() {
+      setTimeout(function () {
+        if (!document.hidden) {
+          var m = document.createElement('span');
+          m.style.left = (20 + Math.random() * 70) + '%';
+          m.style.top = (Math.random() * 35) + '%';
+          box.appendChild(m);
+          setTimeout(function () { m.remove(); }, 1400);
+        }
+        next();
+      }, 5000 + Math.random() * 7000);
+    })();
+  }
+
   /* ---------- language ---------- */
 
   var LANG_KEY = 'abnf-lang';
@@ -203,12 +245,15 @@
     return { name: parts[0] || 'home', arg: parts[1] || null };
   }
 
-  function render() {
+  function render(animate) {
     while (cleanups.length) { try { cleanups.pop()(); } catch (e) { /* ignore */ } }
     var r = parseRoute();
     var view = VIEWS[r.name] || VIEWS.home;
     view(r);
     hydrateArt(app);
+    // entrance animation on navigation (not on a language switch)
+    app.classList.remove('view-in');
+    if (animate && !REDUCED) { void app.offsetWidth; app.classList.add('view-in'); }
     document.querySelectorAll('.mainnav a').forEach(function (a) {
       var on = a.getAttribute('data-route') === (r.name === 'book' ? 'library' : r.name);
       if (on) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
@@ -219,19 +264,39 @@
 
   VIEWS.home = function () {
     app.innerHTML =
-      '<section class="hero panel">' +
-        '<p class="kicker">' + esc(t('homeKicker')) + '</p>' +
-        '<h1>' + esc(t('homeTitle')) + '</h1>' +
-        artCanvas('eagle', 'hero-art', L(getBook('eagle').craftName)) +
-        '<p class="tagline">' + esc(t('homeTagline')) + '</p>' +
-        '<p class="intro">' + esc(t('homeIntro')) + '</p>' +
-        '<div class="btn-grid">' +
-          '<a class="btn" href="#/library">' + esc(t('homeBtnLibrary')) + '</a>' +
-          '<a class="btn" href="#/where">' + esc(t('homeBtnWhere')) + '</a>' +
-          '<a class="btn" href="#/map">' + esc(t('homeBtnMap')) + '</a>' +
-          '<a class="btn" href="#/mission">' + esc(t('homeBtnMission')) + '</a>' +
+      '<section class="hero">' +
+        '<div class="hero-text">' +
+          '<p class="kicker">' + esc(t('homeKicker')) + '</p>' +
+          '<h1>' + esc(t('homeTitle')) + '</h1>' +
+          '<p class="tagline">' + esc(t('homeTagline')) + '</p>' +
+          '<p class="intro">' + esc(t('homeIntro')) + '</p>' +
+          '<div class="hero-cta">' +
+            '<a class="btn btn-big" href="#/library">' + esc(t('homeBtnLibrary')) + ' &#9654;</a>' +
+          '</div>' +
         '</div>' +
-      '</section>';
+        '<figure class="feed">' +
+          '<div class="feed-bar"><span class="rec" aria-hidden="true"></span>' + esc(t('feedLive')) + '<span class="feed-coord">0.67&deg;N 23.47&deg;E</span></div>' +
+          artCanvas('eagle', 'feed-art', L(getBook('eagle').craftName)) +
+          '<figcaption>' + esc(t('heroCaption')) + '</figcaption>' +
+        '</figure>' +
+      '</section>' +
+      '<ul class="stats">' +
+        '<li><b>4</b>' + esc(t('statBooks')) + '</li>' +
+        '<li><b>2</b>' + esc(t('statWorlds')) + '</li>' +
+        '<li><b>EN/ES</b>' + esc(t('statLangs')) + '</li>' +
+      '</ul>' +
+      '<nav class="tiles" aria-label="' + esc(t('homeExplore')) + '">' +
+        tile('#/library', 'eagle', 'homeBtnLibrary', 'tileLibrary') +
+        tile('#/where', 'opportunity', 'homeBtnWhere', 'tileWhere') +
+        tile('#/map', 'viking1', 'homeBtnMap', 'tileMap') +
+        tile('#/mission', 'grail', 'homeBtnMission', 'tileMission') +
+      '</nav>';
+  };
+
+  function tile(href, art, titleKey, textKey) {
+    return '<a class="tile" href="' + href + '">' + artCanvas(art, 'tile-art') +
+      '<span class="tile-title">' + esc(t(titleKey)) + '</span>' +
+      '<span class="tile-text">' + esc(t(textKey)) + '</span></a>';
   };
 
   /* ---------- Library ---------- */
@@ -243,6 +308,7 @@
       '<span class="cover-title">' + esc(L(b.title)) + '</span>' +
       '<span class="cover-sub">' + esc(L(b.subtitle)) + '</span>' +
       (b.placeholder ? '<span class="badge cover-badge">' + esc(t('comingSoon')) + '</span>' : '') +
+      '<span class="cover-shine" aria-hidden="true"></span>' +
     '</a>';
   }
 
@@ -803,13 +869,15 @@
     drawStars();
     makeTwinkles();
     hydrateArt(document.querySelector('.sky'));
+    startAnimation();
     document.querySelectorAll('.lang-toggle button').forEach(function (b) {
       b.addEventListener('click', function () { setLang(b.getAttribute('data-lang')); });
     });
     var resizeTimer;
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawStars, 150); });
-    window.addEventListener('hashchange', function () { render(); window.scrollTo(0, 0); app.focus({ preventScroll: true }); });
-    render();
+    window.addEventListener('hashchange', function () { render(true); window.scrollTo(0, 0); app.focus({ preventScroll: true }); });
+    startMeteors();
+    render(true);
   }
 
   init();
