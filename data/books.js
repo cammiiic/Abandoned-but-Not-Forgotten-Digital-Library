@@ -732,15 +732,83 @@
     { color: '#d9a877', name: { en: 'Sand', es: 'Arena' }, match: ['k0', 'k1', 'k2', 'k3'] }
   ];
 
-  /* ---------- Our Mission (placeholders) ---------- */
+  /* ---------- Our Mission ----------
+     Each section: h (heading) plus any of
+       p     paragraph text
+       links [{ label, url }]  (NASA sources)
+       list  [{ b: bold lead-in, t: text }]                            */
 
   var mission = {
     sections: [
-      { h: { en: 'Our goal', es: 'Nuestro objetivo' }, p: { en: '[Project goal coming soon.]', es: '[Objetivo del proyecto próximamente.]' } },
-      { h: { en: 'Who it is for', es: 'Para quién es' }, p: { en: 'Teenagers (13–18) and classrooms.', es: 'Adolescentes (13 a 18 años) y salones de clase.' } },
-      { h: { en: 'NASA sources', es: 'Fuentes de la NASA' }, p: { en: '[Source list coming soon.]', es: '[Lista de fuentes próximamente.]' } },
-      { h: { en: 'Our team', es: 'Nuestro equipo' }, p: { en: '[Team members coming soon.]', es: '[Integrantes del equipo próximamente.]' } },
-      { h: { en: 'How we used AI', es: 'Cómo usamos la IA' }, p: { en: '[AI-use note coming soon.]', es: '[Nota sobre el uso de IA próximamente.]' } }
+      {
+        h: { en: 'Our goal', es: 'Nuestro objetivo' },
+        p: {
+          en: 'This page was created for the NASA Space Apps Challenge hackathon, with the purpose of informing teenagers and helping them understand the stories of these spacecraft in an easier and more entertaining way, so they can engage with the content and the narrator. At the end of each book, they have the opportunity to prove the knowledge they just gained by taking a fun, interactive quiz.',
+          es: 'Esta página fue creada para el hackatón NASA Space Apps Challenge, con el propósito de informar a los adolescentes y ayudarlos a entender las historias de estas naves espaciales de una forma más fácil y entretenida, para que conecten con el contenido y con la narradora. Al final de cada libro, tienen la oportunidad de demostrar lo que acaban de aprender con un cuestionario divertido e interactivo.'
+        }
+      },
+      {
+        h: { en: 'Who is it for?', es: '¿Para quién es?' },
+        p: {
+          en: 'This was made for teenagers, to give them a more dynamic way to learn and inform themselves.',
+          es: 'Está hecho para adolescentes, para darles una forma más dinámica de aprender e informarse.'
+        }
+      },
+      {
+        h: { en: 'NASA sources', es: 'Fuentes de la NASA' },
+        links: [
+          { label: { en: 'Apollo 11 (Eagle): NASA NSSDCA, Apollo 11 Lunar Module', es: 'Apolo 11 (Eagle): NASA NSSDCA, módulo lunar del Apolo 11' }, url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C' },
+          { label: { en: 'GRAIL (Ebb and Flow): NASA Science, "GRAIL In Depth"', es: 'GRAIL (Ebb y Flow): NASA Science, «GRAIL In Depth»' }, url: 'https://science.nasa.gov/mission/grail/in-depth/' },
+          { label: { en: 'Viking 1: NASA NSSDCA, Viking Mission to Mars', es: 'Viking 1: NASA NSSDCA, misión Viking a Marte' }, url: 'https://nssdc.gsfc.nasa.gov/planetary/viking.html' },
+          { label: { en: 'Opportunity: NASA Science, Mars Exploration Rover Opportunity (MER-B)', es: 'Opportunity: NASA Science, Mars Exploration Rover Opportunity (MER-B)' }, url: 'https://science.nasa.gov/mission/mer-opportunity/' }
+        ]
+      },
+      {
+        h: { en: 'Our team', es: 'Nuestro equipo' },
+        p: {
+          en: 'We are Camila and Alejandra, twins who are very passionate about technology, about innovating with it, and about using AI as a tool to help us make the world better.',
+          es: 'Somos Camila y Alejandra, gemelas apasionadas por la tecnología, por innovar con ella y por usar la IA como una herramienta que nos ayude a hacer del mundo un lugar mejor.'
+        }
+      },
+      {
+        h: { en: 'How we used AI', es: 'Cómo usamos la IA' },
+        p: {
+          en: 'This project used Claude (Anthropic) as a writing and coding assistant throughout the hackathon. Specifically:',
+          es: 'Este proyecto usó Claude (Anthropic) como asistente de escritura y programación durante todo el hackatón. En concreto:'
+        },
+        list: [
+          {
+            b: { en: 'Research simplification:', es: 'Simplificación de la investigación:' },
+            t: { en: 'We provided Claude with official NASA mission data (from NSSDC and science.nasa.gov) for each spacecraft. Claude helped translate the technical language into simpler explanations that we could understand and use as a factual foundation.',
+                 es: 'Le dimos a Claude datos oficiales de la NASA (de NSSDC y science.nasa.gov) sobre cada nave. Claude nos ayudó a convertir el lenguaje técnico en explicaciones más sencillas que pudiéramos entender y usar como base de los hechos.' }
+          },
+          {
+            b: { en: 'Story writing:', es: 'Escritura de las historias:' },
+            t: { en: 'All five-page stories for each book were written by us, in our own words and in Camila\'s voice. Claude reviewed our drafts for grammar, clarity, and factual accuracy against the NASA sources, and suggested small edits. The creative choices, tone, and storytelling were ours.',
+                 es: 'Todas las historias de cinco páginas de cada libro las escribimos nosotras, con nuestras propias palabras y con la voz de Camila. Claude revisó nuestros borradores en cuanto a gramática, claridad y exactitud según las fuentes de la NASA, y sugirió pequeñas correcciones. Las decisiones creativas, el tono y la forma de contar fueron nuestros.' }
+          },
+          {
+            b: { en: 'Narration:', es: 'Narración:' },
+            t: { en: 'All audio narration, in both English and Spanish, was recorded by Camila herself. No AI-generated voices were used.',
+                 es: 'Toda la narración en audio, en inglés y en español, la grabó Camila personalmente. No se usaron voces generadas por IA.' }
+          },
+          {
+            b: { en: 'Translation:', es: 'Traducción:' },
+            t: { en: 'The Spanish versions of the stories were translated with Google Translate, then reviewed and adjusted by us, as native Spanish speakers, so they sound natural.',
+                 es: 'Las versiones en español de las historias se tradujeron con Google Translate y luego las revisamos y ajustamos nosotras, como hablantes nativas de español, para que sonaran naturales.' }
+          },
+          {
+            b: { en: 'Website development:', es: 'Desarrollo del sitio web:' },
+            t: { en: 'Claude (via Claude Code) helped write the HTML, CSS, and JavaScript code for the website\'s structure, visuals, and interactive features (book reader, quiz, graveyard map), based on our design direction and content.',
+                 es: 'Claude (a través de Claude Code) ayudó a escribir el código HTML, CSS y JavaScript de la estructura, los elementos visuales y las funciones interactivas del sitio (lector de libros, cuestionario, mapa del cementerio), siguiendo nuestra dirección de diseño y nuestro contenido.' }
+          },
+          {
+            b: { en: 'Interface translations:', es: 'Traducción de la interfaz:' },
+            t: { en: 'Small UI text (buttons, labels, menu items) was translated by Claude and reviewed by us.',
+                 es: 'Los textos cortos de la interfaz (botones, etiquetas, menús) los tradujo Claude y los revisamos nosotras.' }
+          }
+        ]
+      }
     ]
   };
 

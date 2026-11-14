@@ -1687,9 +1687,19 @@
     app.innerHTML =
       '<section>' +
         '<h1 class="h1">' + esc(t('missionTitle')) + '</h1>' +
-        '<div class="panel mission-list">' +
+        '<div class="mission-list">' +
           DATA.mission.sections.map(function (s) {
-            return '<div><h2>' + esc(L(s.h)) + '</h2><p>' + esc(L(s.p)) + '</p></div>';
+            return '<article class="panel mission-card">' +
+              '<h2>' + esc(L(s.h)) + '</h2>' +
+              (s.p ? '<p>' + esc(L(s.p)) + '</p>' : '') +
+              (s.links ? '<ul class="source-list">' + s.links.map(function (l) {
+                return '<li><a href="' + esc(l.url) + '" target="_blank" rel="noopener noreferrer">' + esc(L(l.label)) + '</a>' +
+                  '<span class="source-url">' + esc(l.url.replace(/^https?:\/\//, '')) + '</span></li>';
+              }).join('') + '</ul>' : '') +
+              (s.list ? '<ul class="ai-list">' + s.list.map(function (it) {
+                return '<li><b>' + esc(L(it.b)) + '</b> ' + esc(L(it.t)) + '</li>';
+              }).join('') + '</ul>' : '') +
+            '</article>';
           }).join('') +
         '</div>' +
       '</section>';
