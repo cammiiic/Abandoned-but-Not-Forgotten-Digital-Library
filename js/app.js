@@ -335,8 +335,6 @@
 
   var PAGES = {};
   var reader = { id: null, page: 0, turning: false };
-  var currentAudio = null;
-  var audioOK = {};   // narration src -> true (exists) / false (missing)
 
   // cover, contents, 5 story pages, coloring, quiz, back cover (10 = 5 sheets of paper)
   function bookPages(book) {
@@ -378,7 +376,10 @@
         '<h1 class="book-title">' + esc(L(book.title)) + '</h1>' +
         artCanvas(book.id, 'book-cover-art', L(book.craftName)) +
         '<p class="book-sub">' + esc(L(book.subtitle)) + '</p>' +
-        '<button type="button" class="btn js-next">' + esc(t('openBook')) + ' &#9654;</button>' +
+        '<div class="cover-actions">' +
+          '<button type="button" class="btn js-next">' + esc(t('openBook')) + ' &#9654;</button>' +
+          '<button type="button" class="btn btn-ghost js-listen"' + (bookHasAudio(book) ? '' : ' hidden') + '>' + esc(t('listenBook')) + '</button>' +
+        '</div>' +
       '</div>';
     }
   };
@@ -391,16 +392,13 @@
       return '<header class="page-head">' +
           '<span class="page-kicker">' + esc(t('part', { n: pg.i + 1 })) + '</span>' +
           '<h2 class="page-title">' + esc(L(p.title)) + '</h2>' +
-          '<button type="button" class="btn btn-small btn-audio" hidden aria-pressed="false">' +
-            '<span class="audio-icon" aria-hidden="true">&#9654;</span><span class="audio-label">' + esc(t('listen')) + '</span></button>' +
+          '<span class="np" data-part="' + pg.i + '" hidden><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>' + esc(t('nowPlaying')) + '</span>' +
         '</header>' +
         (note ? '<p class="pending-note">' + esc(t('translationPending')) + '</p>' : '') +
         '<div class="story"' + (note ? ' lang="en"' : '') + '>' + paragraphs(L(p.text)) + '</div>' +
         '<footer class="folio">' + (pg.n + 1) + '</footer>';
     },
-    hydrate: function (el, book, pg) {
-      setupAudio(el, 'audio/' + book.id + '-p' + (pg.i + 1) + '-' + state.lang + '.m4a');
-    }
+    hydrate: function () { abUpdate(); }
   };
 
   PAGES.back = {
@@ -417,41 +415,274 @@
     }
   };
 
-  /* narration: the button stays hidden unless the file is found */
+  /* ---------- Audiobook ----------
+     Narration files: audio/{bookid}-p{1-5}-{en|es}.m4a
+     One <audio> element is reused for every part: phones only let audio
+     keep playing on its own after the first tap if it is the same element.
+     The player follows the book: when a part ends, the next one starts,
+     turning the page when needed (two-page spreads read left, then right).
+     The player bar only appears when narration exists for the book.     */
 
-  function stopAudio() {
-    if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+  var AUDIO_EXT = 'm4a';
+  var audioFound = {};             // "eagle-p1-en" -> src, or false when missing
+  var narrator = null;
+  var ab = { playing: false, auto: true, rate: 1, part: -1, want: -1, token: 0, msg: '' };
+  var RATES = [1, 1.25, 0.75];
+
+  function audioKey(book, i) { return book.id + '-p' + (i + 1) + '-' + state.lang; }
+  function partPage(i) { return i + 2; }            // cover and contents come first
+
+  function bookHasAudio(book) {
+    return book.pages.some(function (p, i) { return !!audioFound[audioKey(book, i)]; });
   }
 
-  function setupAudio(pageEl, src) {
-    var btn = pageEl.querySelector('.btn-audio');
-    stopAudio();
-    if (!btn || audioOK[src] === false) return;
-    var a = new Audio();
-    a.preload = 'metadata';
-    function show() { audioOK[src] = true; btn.hidden = false; }
-    function hide() { audioOK[src] = false; btn.hidden = true; if (currentAudio === a) currentAudio = null; }
-    function sync(playing) {
-      btn.setAttribute('aria-pressed', String(playing));
-      btn.querySelector('.audio-icon').innerHTML = playing ? 'II' : '&#9654;';
-      btn.querySelector('.audio-label').textContent = t(playing ? 'pause' : 'listen');
-    }
-    a.addEventListener('loadedmetadata', show);
-    a.addEventListener('error', hide);
-    a.addEventListener('play', function () { sync(true); });
-    a.addEventListener('pause', function () { sync(false); });
-    a.addEventListener('ended', function () { a.currentTime = 0; sync(false); });
-    btn.addEventListener('click', function () {
-      if (a.paused) { var p = a.play(); if (p && p.catch) p.catch(function () { /* blocked or missing */ }); }
-      else a.pause();
+  function probe(src) {
+    return new Promise(function (resolve) {
+      if (/^https?:/.test(location.protocol) && window.fetch) {
+        fetch(src, { method: 'HEAD', cache: 'no-cache' })
+          .then(function (r) { resolve(r.ok); })
+          .catch(function () { resolve(false); });
+        return;
+      }
+      // opened straight from disk: ask an <audio> element instead
+      var a = new Audio(), done = false;
+      function fin(ok) { if (!done) { done = true; resolve(ok); } }
+      a.preload = 'metadata';
+      a.addEventListener('loadedmetadata', function () { fin(true); });
+      a.addEventListener('error', function () { fin(false); });
+      setTimeout(function () { fin(false); }, 4000);
+      a.src = src;
     });
-    a.src = src;
-    currentAudio = a;
-    if (audioOK[src]) { show(); return; }
-    // Some phones never preload metadata, so also ask the server directly
-    if (/^https?:/.test(location.protocol) && window.fetch) {
-      fetch(src, { method: 'HEAD' }).then(function (r) { if (r.ok) show(); else hide(); }).catch(function () {});
+  }
+
+  function probeBook(book) {
+    return Promise.all(book.pages.map(function (p, i) {
+      var key = audioKey(book, i);
+      if (key in audioFound) return audioFound[key];
+      var src = 'audio/' + key + '.' + AUDIO_EXT;
+      return probe(src).then(function (ok) { return (audioFound[key] = ok ? src : false); });
+    }));
+  }
+
+  function getNarrator() {
+    if (narrator) return narrator;
+    narrator = new Audio();
+    narrator.preload = 'auto';
+    ['timeupdate', 'loadedmetadata', 'play', 'pause'].forEach(function (ev) { narrator.addEventListener(ev, abUpdate); });
+    narrator.addEventListener('ended', abEnded);
+    narrator.addEventListener('error', function () { if (narrator.getAttribute('src') && ab.playing) abEnded(); });
+    return narrator;
+  }
+
+  // which page numbers / story parts are on screen right now
+  function visiblePages() {
+    if (isSpread()) { var k = spreadK(); return [2 * k - 1, 2 * k]; }
+    return [reader.page];
+  }
+  function visibleParts() {
+    var book = getBook(reader.id), list = bookPages(book);
+    return visiblePages().map(function (n) { return list[n]; })
+      .filter(function (pg) { return pg && pg.type === 'story'; })
+      .map(function (pg) { return pg.i; });
+  }
+  function partVisible(i) { return visiblePages().indexOf(partPage(i)) !== -1; }
+
+  function stopAudio() {
+    if (narrator) narrator.pause();
+    ab.playing = false; ab.part = -1; ab.want = -1; ab.msg = '';
+    clearTimeout(syncTimer);
+  }
+
+  // play part i, turning to its page first if it isn't on screen
+  function playPart(i) {
+    ab.playing = true; ab.msg = '';
+    if (partVisible(i)) { ab.want = -1; startPart(getBook(reader.id), i); }
+    else { ab.want = i; abUpdate(); goTo(partPage(i)); }   // abSync starts it after the turn
+  }
+
+  function abPlay() {
+    var book = getBook(reader.id);
+    if (!book) return;
+    var n = getNarrator();
+    if (ab.part >= 0 && n.getAttribute('src') && !n.ended && partVisible(ab.part)) {   // resume
+      ab.playing = true; ab.msg = '';
+      var p = n.play(); if (p && p.catch) p.catch(function () { ab.playing = false; abUpdate(); });
+      return;
     }
+    var vis = visibleParts();
+    playPart(vis.length ? vis[0] : 0);
+  }
+
+  function abPause() { ab.playing = false; if (narrator) narrator.pause(); abUpdate(); }
+
+  function startPart(book, i) {
+    var n = getNarrator(), token = ++ab.token, key = audioKey(book, i);
+    ab.part = i; ab.msg = '';
+    n.pause();
+    function go(src) {
+      if (token !== ab.token || !ab.playing) return;
+      if (!src) {
+        ab.msg = t('noNarration');
+        abUpdate();
+        if (ab.auto) setTimeout(function () { if (token === ab.token && ab.playing) abEnded(); }, 1600);
+        else { ab.playing = false; abUpdate(); }
+        return;
+      }
+      n.src = src;
+      n.defaultPlaybackRate = n.playbackRate = ab.rate;
+      var p = n.play();
+      if (p && p.catch) p.catch(function () { if (token === ab.token) { ab.playing = false; abUpdate(); } });
+      mediaSession(book, i);
+      abUpdate();
+    }
+    // start right away when the file is already known (keeps the user's tap valid on phones)
+    if (key in audioFound) go(audioFound[key]);
+    else probeBook(book).then(function () { go(audioFound[key]); });
+  }
+
+  function abEnded() {
+    var book = getBook(reader.id);
+    if (!book || !ab.playing) return;
+    var next = ab.part + 1;
+    if (ab.auto && next < book.pages.length) { playPart(next); return; }
+    ab.playing = false;
+    if (next >= book.pages.length) { ab.part = -1; ab.msg = t('abEnd'); }
+    abUpdate();
+  }
+
+  function abStep(dir) {
+    var book = getBook(reader.id);
+    if (!book) return;
+    if (dir < 0 && narrator && ab.part >= 0 && narrator.currentTime > 3) { narrator.currentTime = 0; return; }
+    var vis = visibleParts(), from = ab.part >= 0 ? ab.part : (vis.length ? vis[0] : -1);
+    var target = Math.max(0, Math.min(book.pages.length - 1, from + dir));
+    if (ab.playing) playPart(target);
+    else { ab.part = -1; goTo(partPage(target)); }
+  }
+
+  // after any page change, keep the narration and the pages in step
+  var syncTimer = 0;
+  function abSoon() { clearTimeout(syncTimer); syncTimer = setTimeout(abSync, 90); }
+  function abSync() {
+    if (!reader.id) return;
+    if (reader.turning) { abSoon(); return; }
+    if (ab.playing) {
+      if (ab.want >= 0) {
+        if (partVisible(ab.want)) { var w = ab.want; ab.want = -1; startPart(getBook(reader.id), w); }
+      } else if (ab.part >= 0 && !partVisible(ab.part)) {
+        // the reader turned pages by hand: read what's on screen now
+        var vis = visibleParts();
+        if (vis.length) startPart(getBook(reader.id), vis[0]);
+        else { abPause(); ab.part = -1; }
+      }
+    }
+    abUpdate();
+  }
+
+  function fmt(s) {
+    if (!isFinite(s)) s = 0;
+    s = Math.floor(s);
+    return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+  }
+
+  var ICONS = {
+    play: '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h1v1h1v1h1v1h1v0H5v1H4v1H3v1H2z"/></svg>',
+    pause: '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M2 1h1v6H2zM5 1h1v6H5z"/></svg>',
+    prev: '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M1 1h1v6H1zM6 1h1v6H6V6H5V5H4V4H3V3h1V2h1V1h1z"/></svg>',
+    next: '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M6 1h1v6H6zM1 1h1v1h1v1h1v1h1v0H4v1H3v1H2v1H1z"/></svg>'
+  };
+
+  function abBarHTML() {
+    return '<div class="ab" hidden>' +
+      '<button type="button" class="ab-play" aria-pressed="false"></button>' +
+      '<div class="ab-mid">' +
+        '<div class="ab-title"><span class="ab-kicker">' + esc(t('audiobook')) + '</span><span class="ab-part"></span></div>' +
+        '<div class="ab-track">' +
+          '<input type="range" class="ab-seek" min="0" max="1000" value="0" aria-label="' + esc(t('abSeek')) + '">' +
+          '<span class="ab-time">0:00 / 0:00</span>' +
+        '</div>' +
+      '</div>' +
+      '<div class="ab-btns">' +
+        '<button type="button" class="ab-btn ab-prev" aria-label="' + esc(t('abPrev')) + '" title="' + esc(t('abPrev')) + '">' + ICONS.prev + '</button>' +
+        '<button type="button" class="ab-btn ab-next" aria-label="' + esc(t('abNext')) + '" title="' + esc(t('abNext')) + '">' + ICONS.next + '</button>' +
+        '<button type="button" class="ab-btn ab-rate" title="' + esc(t('abSpeed')) + '"></button>' +
+        '<button type="button" class="ab-btn ab-auto" aria-pressed="true">' + esc(t('abAuto')) + '</button>' +
+      '</div>' +
+      '<p class="ab-msg" role="status" hidden></p>' +
+    '</div>';
+  }
+
+  // refresh the bar and the "now playing" marks on the pages
+  function abUpdate() {
+    var bar = app.querySelector('.ab'), book = getBook(reader.id);
+    if (!bar || !book) return;
+    var n = narrator, sounding = ab.playing && n && !n.paused;
+    var vis = visibleParts(), shown = ab.part >= 0 ? ab.part : (ab.want >= 0 ? ab.want : (vis.length ? vis[0] : 0));
+    var play = bar.querySelector('.ab-play');
+    play.innerHTML = (ab.playing ? ICONS.pause : ICONS.play) +
+      '<span class="ab-play-label">' + esc(t(ab.playing ? 'pause' : (ab.part >= 0 ? 'abResume' : 'abPlay'))) + '</span>';
+    play.setAttribute('aria-pressed', String(ab.playing));
+    bar.classList.toggle('is-playing', !!sounding);
+    bar.querySelector('.ab-part').textContent = t('abPartOf', { n: shown + 1, t: book.pages.length }) + ' · ' + L(book.pages[shown].title);
+    var dur = n && ab.part >= 0 ? n.duration : 0, cur = n && ab.part >= 0 ? n.currentTime : 0;
+    var seek = bar.querySelector('.ab-seek');
+    if (!seek.matches(':active')) seek.value = dur ? Math.round(cur / dur * 1000) : 0;
+    seek.disabled = !dur;
+    seek.style.setProperty('--pct', (dur ? cur / dur * 100 : 0) + '%');
+    bar.querySelector('.ab-time').textContent = fmt(cur) + ' / ' + fmt(dur);
+    bar.querySelector('.ab-rate').innerHTML = String(ab.rate).replace('.', state.lang === 'es' ? ',' : '.') + '&times;';
+    bar.querySelector('.ab-auto').setAttribute('aria-pressed', String(ab.auto));
+    var msg = bar.querySelector('.ab-msg');
+    msg.textContent = ab.msg; msg.hidden = !ab.msg;
+    app.querySelectorAll('.np').forEach(function (el) { el.hidden = !(sounding && +el.getAttribute('data-part') === ab.part); });
+  }
+
+  function initAudiobook(book) {
+    var bar = app.querySelector('.ab');
+    bar.querySelector('.ab-play').addEventListener('click', function () { if (ab.playing) abPause(); else abPlay(); });
+    bar.querySelector('.ab-prev').addEventListener('click', function () { abStep(-1); });
+    bar.querySelector('.ab-next').addEventListener('click', function () { abStep(1); });
+    bar.querySelector('.ab-rate').addEventListener('click', function () {
+      ab.rate = RATES[(RATES.indexOf(ab.rate) + 1) % RATES.length];
+      if (narrator) narrator.defaultPlaybackRate = narrator.playbackRate = ab.rate;
+      abUpdate();
+    });
+    bar.querySelector('.ab-auto').addEventListener('click', function () { ab.auto = !ab.auto; abUpdate(); });
+    bar.querySelector('.ab-seek').addEventListener('input', function (e) {
+      if (narrator && narrator.duration) narrator.currentTime = e.target.value / 1000 * narrator.duration;
+    });
+    abUpdate();
+    var lang = state.lang;
+    probeBook(book).then(function (found) {
+      if (lang !== state.lang || !bar.isConnected) return;
+      var any = found.some(Boolean);
+      bar.hidden = !any;
+      app.querySelectorAll('.js-listen').forEach(function (b) { b.hidden = !any; });
+      abUpdate();
+    });
+  }
+
+  // lock-screen and headphone controls on phones
+  function mediaSession(book, i) {
+    if (!('mediaSession' in navigator) || !window.MediaMetadata) return;
+    try {
+      var art = [];
+      if (SPRITES && SPRITES.has(book.id)) {
+        var c = document.createElement('canvas');
+        SPRITES.draw(c, book.id, 0);
+        art.push({ src: c.toDataURL('image/png'), sizes: c.width + 'x' + c.height, type: 'image/png' });
+      }
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: t('abPartOf', { n: i + 1, t: book.pages.length }) + ': ' + L(book.pages[i].title),
+        artist: t('siteTitle'),
+        album: L(book.title),
+        artwork: art
+      });
+      navigator.mediaSession.setActionHandler('play', abPlay);
+      navigator.mediaSession.setActionHandler('pause', abPause);
+      navigator.mediaSession.setActionHandler('previoustrack', function () { abStep(-1); });
+      navigator.mediaSession.setActionHandler('nexttrack', function () { abStep(1); });
+    } catch (e) { /* not supported */ }
   }
 
   /* ---------- Color by number ----------
@@ -930,6 +1161,7 @@
     app.querySelector('.js-nextnav').disabled = last;
     app.querySelector('.page-count').textContent = label;
     app.querySelector('.page-dots').innerHTML = dots;
+    abSoon();
   }
 
   /* ---------- two-page spreads (wide screens) ----------
@@ -1056,7 +1288,6 @@
     var forward = n > reader.page;
     var stage = app.querySelector('.book-stage');
     var base = document.getElementById('page-base');
-    stopAudio();
     // after reading to the bottom of a long page, bring the top of the next one into view
     if (stage.getBoundingClientRect().top < 0) stage.scrollIntoView({ block: 'start' });
 
@@ -1114,7 +1345,6 @@
     var book = getBook(reader.id), total = bookPages(book).length, from = reader.page, n = from + dir;
     if (n < 0 || n >= total || reader.turning) return null;
     var stage = app.querySelector('.book-stage'), base = document.getElementById('page-base'), ov;
-    stopAudio();
     reader.turning = true;
     if (dir > 0) {
       // lift the current page; the next one is already underneath
@@ -1174,6 +1404,7 @@
           '<a class="btn btn-small btn-ghost" href="#/library">&#9664; ' + esc(t('backToLibrary')) + '</a>' +
           '<span class="page-count" aria-live="polite"></span>' +
         '</div>' +
+        abBarHTML() +
         (wide
           ? '<div class="book-stage spread"><article class="page" id="page-left"></article><article class="page" id="page-right"></article></div>'
           : '<div class="book-stage"><article class="page" id="page-base"></article></div>') +
@@ -1189,18 +1420,20 @@
     if (wide) renderSpread(book);
     else renderPageInto(document.getElementById('page-base'), book);
     updateNav(book);
+    initAudiobook(book);
 
     app.querySelector('.js-prev').addEventListener('click', function () { turn(-1); });
     app.querySelector('.js-nextnav').addEventListener('click', function () { turn(1); });
     stage.addEventListener('click', function (e) {
       var go = e.target.closest('.js-goto');
       if (e.target.closest('.js-next')) turn(1);
+      else if (e.target.closest('.js-listen')) abPlay();
       else if (e.target.closest('.js-restart')) goTo(0);
       else if (go) goTo(+go.getAttribute('data-n'));
     });
 
     // switch between one page and two-page spreads when the window size changes
-    function onMode() { if (!reader.turning) render(); }
+    function onMode() { if (!reader.turning) { reader.keepAudio = true; render(); } }
     if (SPREAD_MQ) {
       if (SPREAD_MQ.addEventListener) SPREAD_MQ.addEventListener('change', onMode);
       else SPREAD_MQ.addListener(onMode);
@@ -1265,7 +1498,9 @@
         else SPREAD_MQ.removeListener(onMode);
       }
       document.body.classList.remove('dragging-page');
-      stopAudio();
+      // keep reading when only the layout changes (one page <-> two pages)
+      if (reader.keepAudio) reader.keepAudio = false;
+      else stopAudio();
     });
   };
 
