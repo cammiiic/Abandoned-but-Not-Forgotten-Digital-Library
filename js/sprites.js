@@ -143,13 +143,52 @@
     return this;
   };
 
+  /* "Today" variant: set while a sprite is being drawn as it looks now,
+     abandoned (dimmer, dusty, tilted, missing parts).                     */
+  var TODAY = false;
+
+  function mixHex(a, b, t) {
+    var x = rgb(a), y = rgb(b), o = '#';
+    for (var i = 0; i < 3; i++) o += ('0' + Math.round(x[i] + (y[i] - x[i]) * t).toString(16)).slice(-2);
+    return o;
+  }
+
+  // rotate a layer about a point (in real pixels), nearest neighbour
+  S.prototype.rotate = function (deg, px, py) {
+    var a = -deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), out = new Array(this.p.length).fill(null);
+    for (var y = 0; y < this.H; y++) for (var x = 0; x < this.W; x++) {
+      var dx = x + 0.5 - px, dy = y + 0.5 - py;
+      var sx = Math.floor(px + dx * c - dy * s), sy = Math.floor(py + dx * s + dy * c);
+      out[y * this.W + x] = this.get(sx, sy);
+    }
+    this.p = out;
+    return this;
+  };
+
   // background + outlined spacecraft + thin details; remembers which
-  // pixels belong to the spacecraft (used by the coloring page)
-  function compose(bg, fg, fx) {
+  // pixels belong to the spacecraft (used by the coloring page).
+  // o (today only): { dust: color, tilt: degrees, dim: 0..1 }
+  function compose(bg, fg, fx, o) {
+    if (TODAY && o && o.tilt) {
+      var px = fg.W / 2, py = fg.H * 0.8;
+      fg.rotate(o.tilt, px, py); fx.rotate(o.tilt, px, py);
+    }
     var craft = new Array(bg.p.length);
     for (var i = 0; i < craft.length; i++) craft[i] = !!(fg.p[i] || fx.p[i]);
     var out = bg.over(fg).over(fx);
     out.craft = craft;
+    if (TODAY && o) {
+      var W = out.W, r = rng(77), dim = o.dim == null ? 0.3 : o.dim;
+      for (var j = 0; j < out.p.length; j++) {
+        var c = out.p[j];
+        if (!c) continue;
+        if (craft[j]) {
+          var top = j < W || !craft[j - W];                    // nothing above: dust settles here
+          c = mixHex(c, o.dust, top ? 0.85 : 0.3 + r() * 0.25);
+        }
+        out.p[j] = mixHex(c, '#0a0b16', dim);
+      }
+    }
     return out;
   }
 
@@ -326,6 +365,15 @@
     for (var ry = 43; ry <= 49; ry += 2) fg.rect(31, ry, 3, 1, P.s1);
     fg.ellipse(32.5, 51, 3, 1.2, function (x, y) { return y < 51 ? P.s1 : P.s3; });
 
+    if (TODAY) {
+      // only the bottom half is left; the flag was knocked over at liftoff
+      fg.rect(26, 28, 12, 1, P.s3);
+      fg.rect(44, 51, 15, 1, P.s1);
+      fg.rect(52, 49, 6, 2, function (x, y) { return (x + y) % 2 ? P.s2 : P.red2; });
+      fg.outline(P.ink);
+      return compose(bg, fg, fx, { dust: P.m2, dim: 0.25 });
+    }
+
     // ascent stage (the crew cabin): wide, angular facets lit from the left
     var hull = [P.s0, P.s1, P.s2, P.s3, P.s4];
     fg.poly([[16, 29], [48, 29], [49, 22], [45, 17], [38, 15], [26, 15], [19, 17], [15, 22]],
@@ -389,6 +437,13 @@
     sphere(bg, 30, 108, 62, [P.m0, P.m1, P.m2, P.m3, P.m4], {
       shade: craterShade([[-0.3, -0.92, 0.05], [0.05, -0.95, 0.04], [0.25, -0.9, 0.06], [-0.1, -0.86, 0.07], [0.38, -0.84, 0.05]])
     });
+    if (TODAY) {
+      // the mountain near the north pole, with two small craters side by side
+      bg.poly([[16, 50], [27, 39], [31, 41], [38, 37], [50, 50]], function (x, y) { return grad([P.m0, P.m1, P.m2, P.m3], (x - 16) / 34 + (y - 37) / 40); });
+      crater(bg, 29, 41.5, 1.6, 0.9, [P.m0, P.m2, P.m4, P.m5]);
+      crater(bg, 33, 40.5, 1.6, 0.9, [P.m0, P.m2, P.m4, P.m5]);
+      return compose(bg, fg, fx, { dust: P.m2, dim: 0.25 });
+    }
     probe(fg, fx, 18, 18, f, 2);
     probe(fg, fx, 46, 32, f, 5);
     fg.outline(P.ink);
@@ -445,8 +500,8 @@
 
     fx.line(25, 15, 25, 11, P.s2); fx.set(25, 10, P.s0);                       // feed horn
     fx.line(48, 32, 54, 24, P.s2); fx.rect(53, 22, 3, 2, P.s1);                 // weather boom
-    if (f < 2) fx.set(25, 10, P.red);
-    return compose(bg, fg, fx);
+    if (f < 2 && !TODAY) fx.set(25, 10, P.red);
+    return compose(bg, fg, fx, { dust: P.k2, tilt: -4, dim: 0.3 });
   }
 
   /* ---------- Opportunity at Perseverance Valley ---------- */
@@ -491,10 +546,10 @@
     fg.line(46, 38, 55, 40, P.s3); fg.rect(54, 39, 3, 3, P.s2);
     fg.outline(P.ink);
 
-    fx.set(39, 10, f % 2 ? P.b0 : P.cyan); fx.set(45, 10, f % 2 ? P.cyan : P.b0);  // camera lenses glint
+    if (TODAY) { fx.set(39, 10, P.b3); fx.set(45, 10, P.b3); } else { fx.set(39, 10, f % 2 ? P.b0 : P.cyan); fx.set(45, 10, f % 2 ? P.cyan : P.b0); }  // camera lenses glint
     fx.line(20, 28, 20, 25, P.s3); fx.ellipse(20.5, 23.5, 3.6, 1.8, function (x) { return x < 20 ? P.s0 : P.s2; });  // high-gain dish
     fx.line(13, 28, 13, 21, P.s2); fx.set(13, 20, P.s0);                                                            // low-gain antenna
-    return compose(bg, fg, fx);
+    return compose(bg, fg, fx, { dust: P.k1, tilt: 5, dim: 0.42 });
   }
 
   /* ---------- sky bodies (32 x 32) ---------- */
@@ -529,11 +584,82 @@
     return s;
   }
 
+  /* ---------- world maps (192 x 96, equirectangular) ----------
+     Simplified pixel maps with the main real features in roughly the
+     right places. Longitude -180..180 left to right, latitude 90..-90.  */
+
+  var MW = 192, MH = 96;
+  function mx(lon) { return (lon + 180) / 360 * MW; }
+  function my(lat) { return (90 - lat) / 180 * MH; }
+  function mapPatch(s, lon, lat, rlon, rlat, c) { s.ellipse(mx(lon), my(lat), rlon / 360 * MW, rlat / 180 * MH, c); }
+
+  function mapGrid(s, col) {
+    for (var lon = -150; lon <= 150; lon += 30) for (var y = 0; y < MH; y += 3) s.set(Math.floor(mx(lon)), y, col);
+    for (var lat = -60; lat <= 60; lat += 30) for (var x = 0; x < MW; x += 3) s.set(x, Math.floor(my(lat)), col);
+  }
+
+  function mapMoon() {
+    var s = new S(MW, MH), r = rng(31);
+    s.rect(0, 0, MW, MH, function () { var v = r(); return v < 0.8 ? P.m1 : v < 0.95 ? P.m0 : P.m2; });
+    // maria (dark "seas"), mostly on the near side
+    [[31, 8.5, 22, 16], [17.5, 28, 17, 15], [-16, 33, 34, 22], [-57, 15, 40, 46], [59, 17, 13, 11],
+     [51, -8, 16, 18], [35, -15, 10, 9], [-17, -21, 18, 14], [-39, -24, 9, 9], [0, 56, 80, 7],
+     [4, 13, 8, 6], [-23, -10, 10, 8], [147, 27, 6, 6], [-92, -19, 8, 7]]
+      .forEach(function (m) {
+        mapPatch(s, m[0], m[1], m[2], m[3], function () { return r() < 0.9 ? P.m3 : P.m2; });
+      });
+    // craters
+    for (var i = 0; i < 70; i++) {
+      var cx = r() * MW, cy = 4 + r() * (MH - 8), rr = 0.8 + r() * 2.2;
+      crater(s, cx, cy, rr, rr * 0.8, [P.m0, P.m1, P.m3, P.m4]);
+    }
+    // Tycho, with its bright rays
+    var tx = mx(-11), ty = my(-43);
+    for (var a = 0; a < 12; a++) {
+      var ang = a / 12 * Math.PI * 2 + 0.3, len = 8 + (a % 3) * 5;
+      for (var d = 2; d < len; d++) if (r() < 0.75) s.set(tx + Math.cos(ang) * d, ty + Math.sin(ang) * d * 0.6, P.m0);
+    }
+    crater(s, tx, ty, 2, 1.6, [P.s0, P.m0, P.m2, P.m3]);
+    mapGrid(s, P.m2);
+    return s;
+  }
+
+  function mapMars() {
+    var s = new S(MW, MH), r = rng(41);
+    s.rect(0, 0, MW, MH, function () { var v = r(); return v < 0.8 ? P.r1 : v < 0.93 ? P.r0 : P.r2; });
+    // darker regions (albedo features)
+    [[69, 8, 18, 26], [-30, 47, 50, 18], [-40, -25, 50, 18], [0, -3, 26, 8], [105, -20, 40, 14],
+     [145, -25, 50, 12], [110, 45, 40, 18], [-130, -30, 40, 12]]
+      .forEach(function (m) { mapPatch(s, m[0], m[1], m[2], m[3], function () { return r() < 0.88 ? P.r2 : P.r3; }); });
+    // Hellas basin (bright) and Chryse plain
+    mapPatch(s, 70, -42, 28, 18, function () { return r() < 0.7 ? P.r0 : P.k0; });
+    mapPatch(s, -48, 22, 20, 14, function () { return r() < 0.7 ? P.r0 : P.r1; });
+    // Tharsis volcanoes and Olympus Mons
+    [[-134, 18, 7], [-104, 11, 4], [-113, 1, 4], [-121, -9, 4]].forEach(function (v) {
+      s.ellipse(mx(v[0]), my(v[1]), v[2] / 360 * MW * 1.4, v[2] / 180 * MH * 0.9, P.r3);
+      s.ellipse(mx(v[0]) - 0.5, my(v[1]) - 0.5, 1.2, 1, P.r4);
+    });
+    // Valles Marineris canyon
+    s.line(Math.round(mx(-100)), Math.round(my(-7)), Math.round(mx(-40)), Math.round(my(-12)), P.r4);
+    s.line(Math.round(mx(-95)), Math.round(my(-8)), Math.round(mx(-50)), Math.round(my(-12)), P.r3);
+    // craters
+    for (var i = 0; i < 40; i++) {
+      var cx = r() * MW, cy = 8 + r() * (MH - 16), rr = 0.7 + r() * 1.8;
+      crater(s, cx, cy, rr, rr * 0.8, [P.r0, P.r1, P.r3, P.r4]);
+    }
+    // polar ice caps
+    s.rect(0, 0, MW, 4, function () { return r() < 0.85 ? P.s0 : P.s1; });
+    s.rect(0, MH - 3, MW, 3, function () { return r() < 0.85 ? P.s0 : P.s1; });
+    mapGrid(s, P.r2);
+    return s;
+  }
+
   /* ---------- registry and cache ---------- */
 
   var MAKERS = {
     eagle: eagle, grail: grail, viking1: viking1, opportunity: opportunity,
-    'orb:sun': orbSun, 'orb:moon': orbMoon, 'orb:mars': orbMars
+    'orb:sun': orbSun, 'orb:moon': orbMoon, 'orb:mars': orbMars,
+    'map:moon': mapMoon, 'map:mars': mapMars
   };
   var FRAMES = 4, cache = {};
 
@@ -546,9 +672,14 @@
   } catch (e) { /* ignore */ }
   var K = RES / 64;
 
-  function frameCanvas(id, frame) {
-    var key = id + '#' + frame;
-    if (!cache[key]) cache[key] = MAKERS[id](frame, id.indexOf('orb:') === 0 ? 1 : K).toCanvas();
+  // variant: '' (on its mission) or 'today' (as it is now, abandoned)
+  function frameCanvas(id, frame, variant) {
+    var key = id + '#' + frame + '#' + (variant || '');
+    if (!cache[key]) {
+      TODAY = variant === 'today';
+      try { cache[key] = MAKERS[id](frame, /^(orb|map):/.test(id) ? 1 : K).toCanvas(); }
+      finally { TODAY = false; }
+    }
     return cache[key];
   }
 
@@ -566,8 +697,8 @@
       var s = MAKERS[id](0, 1);
       return { w: s.W, h: s.H, px: s.p, craft: s.craft, nameOf: function (hex) { return NAME_OF[hex] || null; } };
     },
-    draw: function (canvas, id, frame) {
-      var src = frameCanvas(id, (frame || 0) % FRAMES);
+    draw: function (canvas, id, frame, variant) {
+      var src = frameCanvas(id, (frame || 0) % FRAMES, variant);
       if (canvas.width !== src.width) { canvas.width = src.width; canvas.height = src.height; }
       var ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;

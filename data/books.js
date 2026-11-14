@@ -141,6 +141,19 @@
       whereIntro: 'Pick a spacecraft and flip the switch to see it on its mission, and how it looks today.',
       mapTitle: 'Graveyard map',
       mapIntro: 'Find where each spacecraft rests on the Moon and on Mars. All locations are approximate.',
+      whereThen: 'On its mission',
+      whereNow: 'Today',
+      thenNow: 'Then & now',
+      statusLabel: 'Status',
+      whereTimeline: 'Timeline',
+      readItsBook: 'Read its book',
+      seeOnMap: 'See it on the map',
+      dirN: 'N', dirS: 'S', dirE: 'E', dirW: 'W',
+      mapOf: 'Map of {body}',
+      restingPlace: 'Resting place',
+      approx: 'approximate',
+      mapPick: 'Tap a pin to see which spacecraft rests there.',
+      mapNote: 'Illustrated pixel map, not to scale. Pin locations are approximate.',
       missionTitle: 'Our mission',
       underConstruction: 'This section is under construction.',
 
@@ -248,6 +261,19 @@
       whereIntro: 'Elige una nave y mueve el interruptor para verla en su misión y cómo se ve hoy.',
       mapTitle: 'Mapa del cementerio',
       mapIntro: 'Descubre dónde descansa cada nave en la Luna y en Marte. Todas las ubicaciones son aproximadas.',
+      whereThen: 'En su misión',
+      whereNow: 'Hoy',
+      thenNow: 'Antes y ahora',
+      statusLabel: 'Estado',
+      whereTimeline: 'Línea del tiempo',
+      readItsBook: 'Leer su libro',
+      seeOnMap: 'Verla en el mapa',
+      dirN: 'N', dirS: 'S', dirE: 'E', dirW: 'O',
+      mapOf: 'Mapa de {body}',
+      restingPlace: 'Lugar de descanso',
+      approx: 'aproximado',
+      mapPick: 'Toca un marcador para ver qué nave descansa allí.',
+      mapNote: 'Mapa ilustrado en pixel art, no está a escala. Las ubicaciones de los marcadores son aproximadas.',
       missionTitle: 'Nuestra misión',
       underConstruction: 'Esta sección está en construcción.',
 
@@ -274,6 +300,21 @@
         lat: 0.67, lon: 23.47,
         note: { en: 'Ascent stage: location unknown.', es: 'Etapa de ascenso: ubicación desconocida.' }
       },
+      now: {
+        status: { en: 'Descent stage on the surface. Ascent stage lost.', es: 'Etapa de descenso en la superficie. Etapa de ascenso perdida.' },
+        text: {
+          en: 'The bottom half of Eagle still stands at Tranquility Base, surrounded by footprints. The top half was left orbiting the Moon in 1969 and nobody knows where it ended up. The laser mirror the astronauts set up is still used by scientists today.',
+          es: 'La mitad inferior del Eagle sigue en la Base Tranquilidad, rodeada de huellas. La mitad superior quedó orbitando la Luna en 1969 y nadie sabe dónde terminó. El espejo láser que instalaron los astronautas todavía lo usan los científicos hoy.'
+        }
+      },
+      timeline: [
+        { date: { en: 'Jul 16, 1969', es: '16 jul 1969' }, text: { en: 'Launches on a Saturn V rocket from Florida.', es: 'Despega en un cohete Saturno V desde Florida.' } },
+        { date: { en: 'Jul 20, 1969', es: '20 jul 1969' }, text: { en: 'Lands in the Sea of Tranquility: "The Eagle has landed." Hours later, the first human steps on the Moon.', es: 'Aterriza en el Mar de la Tranquilidad: «El Eagle ha aterrizado». Horas después, los primeros pasos humanos en la Luna.' } },
+        { date: { en: 'Jul 21, 1969', es: '21 jul 1969' }, text: { en: 'The top half lifts off; the bottom half stays behind as a launch pad.', es: 'La mitad superior despega; la inferior se queda como plataforma de lanzamiento.' } },
+        { date: { en: 'Jul 21, 1969', es: '21 jul 1969' }, text: { en: 'The empty top half is released into orbit around the Moon.', es: 'La mitad superior, vacía, queda en órbita alrededor de la Luna.' } },
+        { date: { en: 'Aug 27, 1969', es: '27 ago 1969' }, text: { en: 'The science station left on the surface goes silent.', es: 'La estación científica que quedó en la superficie enmudece.' } },
+        { date: { en: 'Today', es: 'Hoy' }, text: { en: 'Scientists still bounce lasers off the mirror left at Tranquility Base.', es: 'Los científicos siguen enviando láseres al espejo que quedó en la Base Tranquilidad.' } }
+      ],
       pages: [
         {
           title: { en: 'Meet Eagle', es: 'Conoce a Eagle' },
@@ -366,6 +407,22 @@
         name: { en: 'GRAIL Ebb & Flow, Sally K. Ride Impact Site', es: 'GRAIL Ebb y Flow, sitio de impacto Sally K. Ride' },
         lat: 75.62, lon: -26.63, note: null
       },
+      now: {
+        status: { en: 'Crashed together on purpose, Dec 17, 2012.', es: 'Se estrellaron juntas a propósito el 17 dic 2012.' },
+        text: {
+          en: 'Ebb and Flow rest side by side on a mountain near the Moon\'s north pole, at the Sally K. Ride Impact Site. Their gravity map is still used by scientists studying how the Moon formed.',
+          es: 'Ebb y Flow descansan una junto a la otra en una montaña cerca del polo norte de la Luna, en el sitio de impacto Sally K. Ride. Los científicos siguen usando su mapa de gravedad para estudiar cómo se formó la Luna.'
+        }
+      },
+      timeline: [
+        { date: { en: 'Sep 10, 2011', es: '10 sep 2011' }, text: { en: 'The twins launch together from Florida.', es: 'Las gemelas despegan juntas desde Florida.' } },
+        { date: { en: 'Dec 31, 2011', es: '31 dic 2011' }, text: { en: 'Ebb reaches the Moon first, on New Year\'s Eve.', es: 'Ebb llega primero a la Luna, en la víspera de Año Nuevo.' } },
+        { date: { en: 'Jan 1, 2012', es: '1 ene 2012' }, text: { en: 'Flow arrives. The twins line up and start orbiting together.', es: 'Llega Flow. Las gemelas se alinean y empiezan a orbitar juntas.' } },
+        { date: { en: '2012', es: '2012' }, text: { en: 'They map the Moon\'s gravity, and students take photos with MoonKAM.', es: 'Mapean la gravedad de la Luna y los estudiantes toman fotos con MoonKAM.' } },
+        { date: { en: 'Jul 2012', es: 'jul 2012' }, text: { en: 'Sally Ride, who ran MoonKAM, passes away.', es: 'Fallece Sally Ride, quien dirigía MoonKAM.' } },
+        { date: { en: 'Dec 17, 2012', es: '17 dic 2012' }, text: { en: 'Out of fuel, Ebb and then Flow hit a mountain near the north pole.', es: 'Sin combustible, Ebb y luego Flow impactan una montaña cerca del polo norte.' } },
+        { date: { en: 'Today', es: 'Hoy' }, text: { en: 'They rest at the Sally K. Ride Impact Site.', es: 'Descansan en el sitio de impacto Sally K. Ride.' } }
+      ],
       pages: [
         {
           title: { en: 'The Twins', es: 'Los gemelos' },
@@ -456,6 +513,23 @@
         name: { en: 'Viking 1 lander, Chryse Planitia', es: 'Aterrizador Viking 1, Chryse Planitia' },
         lat: 22.48, lon: -47.94, note: null
       },
+      now: {
+        status: { en: 'Silent since November 1982.', es: 'En silencio desde noviembre de 1982.' },
+        text: {
+          en: 'The lander still sits on the Golden Plain of Chryse Planitia, slowly gathering red dust. Its orbiter, out of fuel since 1980, still circles Mars. The question it asked, "Is there life on Mars?", is still being studied.',
+          es: 'El módulo de aterrizaje sigue en la Llanura Dorada de Chryse Planitia, cubriéndose poco a poco de polvo rojo. Su orbitador, sin combustible desde 1980, todavía gira alrededor de Marte. La pregunta que hizo, «¿hay vida en Marte?», aún se sigue estudiando.'
+        }
+      },
+      timeline: [
+        { date: { en: 'Aug 20, 1975', es: '20 ago 1975' }, text: { en: 'Launches from Florida: an orbiter and a lander in one.', es: 'Despega desde Florida: un orbitador y un módulo de aterrizaje en uno.' } },
+        { date: { en: 'Jun 1976', es: 'jun 1976' }, text: { en: 'Reaches Mars. The first landing spot looks too rough.', es: 'Llega a Marte. El primer lugar de aterrizaje parece demasiado accidentado.' } },
+        { date: { en: 'Jul 20, 1976', es: '20 jul 1976' }, text: { en: 'Lands on Chryse Planitia: the first American spacecraft on Mars.', es: 'Aterriza en Chryse Planitia: la primera nave estadounidense en Marte.' } },
+        { date: { en: 'Jul 1976', es: 'jul 1976' }, text: { en: 'Scoops up Martian soil to look for signs of life.', es: 'Recoge suelo marciano para buscar señales de vida.' } },
+        { date: { en: '1980', es: '1980' }, text: { en: 'The orbiter runs out of fuel after 1,489 orbits.', es: 'El orbitador se queda sin combustible tras 1489 órbitas.' } },
+        { date: { en: '1982', es: '1982' }, text: { en: 'The lander is renamed the Thomas Mutch Memorial Station.', es: 'El módulo es rebautizado como Estación Conmemorativa Thomas Mutch.' } },
+        { date: { en: 'Nov 11, 1982', es: '11 nov 1982' }, text: { en: 'A wrong command is sent by mistake. The lander goes silent.', es: 'Se envía un comando equivocado por error. El módulo enmudece.' } },
+        { date: { en: 'Today', es: 'Hoy' }, text: { en: 'Still sitting on the Golden Plain, waiting.', es: 'Sigue en la Llanura Dorada, a la espera.' } }
+      ],
       pages: [
         {
           title: { en: 'The Pair', es: 'El par' },
@@ -543,6 +617,24 @@
         name: { en: 'Opportunity, Perseverance Valley', es: 'Opportunity, Valle Perseverance' },
         lat: -2.3, lon: -5.3, note: null
       },
+      now: {
+        status: { en: 'Last signal: June 10, 2018. Mission over: Feb 13, 2019.', es: 'Última señal: 10 jun 2018. Misión terminada: 13 feb 2019.' },
+        text: {
+          en: 'Opportunity rests in Perseverance Valley, its solar panels covered in dust from the storm that silenced it. It was built for 90 days and 1 kilometer. It lasted almost 15 years and drove over 45 kilometers.',
+          es: 'Opportunity descansa en el Valle de la Perseverancia, con sus paneles solares cubiertos del polvo de la tormenta que lo silenció. Fue construido para 90 días y 1 kilómetro. Duró casi 15 años y recorrió más de 45 kilómetros.'
+        }
+      },
+      timeline: [
+        { date: { en: 'Jul 7, 2003', es: '7 jul 2003' }, text: { en: 'Launches from Cape Canaveral, a few weeks after its twin, Spirit.', es: 'Despega desde Cabo Cañaveral, unas semanas después de su gemelo, Spirit.' } },
+        { date: { en: 'Jan 24, 2004', es: '24 ene 2004' }, text: { en: 'Bounces down at least 26 times inside Eagle crater.', es: 'Rebota al menos 26 veces dentro del cráter Eagle.' } },
+        { date: { en: '2005', es: '2005' }, text: { en: 'Stuck in sand; engineers take six weeks to free it.', es: 'Atrapado en la arena; los ingenieros tardan seis semanas en liberarlo.' } },
+        { date: { en: '2007', es: '2007' }, text: { en: 'Huge dust storms; it waits about six weeks for the sky to clear.', es: 'Enormes tormentas de polvo; espera unas seis semanas a que se despeje el cielo.' } },
+        { date: { en: '2010', es: '2010' }, text: { en: 'Breaks Viking 1\'s record as the longest-working spacecraft on Mars.', es: 'Supera el récord de la Viking 1 como la nave que más tiempo ha funcionado en Marte.' } },
+        { date: { en: '2015', es: '2015' }, text: { en: 'Drives the distance of a full marathon on another world.', es: 'Recorre la distancia de un maratón completo en otro mundo.' } },
+        { date: { en: '2017', es: '2017' }, text: { en: 'Drives into Perseverance Valley.', es: 'Entra en el Valle de la Perseverancia.' } },
+        { date: { en: 'Jun 10, 2018', es: '10 jun 2018' }, text: { en: 'A planet-wide dust storm blocks the Sun. Last signal.', es: 'Una tormenta de polvo global tapa el Sol. Última señal.' } },
+        { date: { en: 'Feb 13, 2019', es: '13 feb 2019' }, text: { en: 'NASA declares the mission over.', es: 'La NASA da por terminada la misión.' } }
+      ],
       pages: [
         {
           title: { en: 'The Twin Rovers', es: 'Los vehículos gemelos' },

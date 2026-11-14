@@ -98,7 +98,7 @@
 
   function drawCanvas(c) {
     var id = spriteId(c);
-    if (SPRITES && SPRITES.has(id)) { SPRITES.draw(c, id, frame); return; }
+    if (SPRITES && SPRITES.has(id)) { SPRITES.draw(c, id, frame, c.getAttribute('data-variant') || ''); return; }
     if (c.hasAttribute('data-orb')) { drawOrb(c, c.getAttribute('data-orb')); return; }
     var b = getBook(id);
     if (b) drawArt(c, b.art);
@@ -1518,21 +1518,170 @@
     });
   };
 
-  /* ---------- placeholder sections (built in a later step) ---------- */
+  /* ---------- Where are they now? ----------
+     Pick a spacecraft; a switch flips its picture between "on its mission"
+     and "today, abandoned" (the 'today' sprite variant), with a timeline. */
 
-  function placeholderView(titleKey, introKey) {
-    return function () {
-      app.innerHTML =
-        '<section class="placeholder">' +
-          '<h1 class="h1">' + esc(t(titleKey)) + '</h1>' +
-          '<p class="lead">' + esc(t(introKey)) + '</p>' +
-          '<div class="panel construction"><canvas class="pix" data-orb="moon" style="width:48px;height:48px" aria-hidden="true"></canvas>' +
-          '<span class="badge">' + esc(t('comingSoon')) + '</span><span>' + esc(t('underConstruction')) + '</span></div>' +
-        '</section>';
-    };
+  var whereState = { id: 'eagle', view: 'then' };
+
+  function bodyName(body) { return t(body === 'moon' ? 'moon' : 'mars'); }
+
+  // "≈ 22.48° N, 47.94° W" (W is "O" in Spanish)
+  function coords(site) {
+    var ns = site.lat >= 0 ? t('dirN') : t('dirS'), ew = site.lon >= 0 ? t('dirE') : t('dirW');
+    return '≈ ' + Math.abs(site.lat).toFixed(2) + '° ' + ns + ', ' + Math.abs(site.lon).toFixed(2) + '° ' + ew;
   }
-  VIEWS.where = placeholderView('whereTitle', 'whereIntro');
-  VIEWS.map = placeholderView('mapTitle', 'mapIntro');
+
+  VIEWS.where = function (r) {
+    if (r.arg && getBook(r.arg)) whereState.id = r.arg;
+    var b = getBook(whereState.id), now = whereState.view === 'now';
+    app.innerHTML =
+      '<section class="where">' +
+        '<h1 class="h1">' + esc(t('whereTitle')) + '</h1>' +
+        '<p class="lead">' + esc(t('whereIntro')) + '</p>' +
+        '<div class="craft-picker" role="tablist" aria-label="' + esc(t('whereTitle')) + '">' +
+          DATA.books.map(function (x) {
+            return '<button type="button" role="tab" class="craft-tab" data-id="' + x.id + '" aria-selected="' + (x.id === b.id) + '">' +
+              artCanvas(x.id, 'craft-tab-art') + '<span>' + esc(L(x.craftName)) + '</span></button>';
+          }).join('') +
+        '</div>' +
+        '<div class="where-card panel">' +
+          '<figure class="then-now' + (now ? ' is-now' : '') + '">' +
+            '<div class="tn-frame">' +
+              artCanvas(b.id, 'tn-art tn-then', L(b.craftName) + ': ' + t('whereThen')) +
+              '<canvas class="pix tn-art tn-now" data-art="' + b.id + '" data-variant="today" role="img" aria-label="' + esc(L(b.craftName) + ': ' + t('whereNow')) + '"></canvas>' +
+              '<span class="tn-stamp">' + esc(now ? t('whereNow') : t('whereThen')) + '</span>' +
+            '</div>' +
+            '<div class="tn-switch" role="group" aria-label="' + esc(t('thenNow')) + '">' +
+              '<button type="button" class="tn-btn" data-v="then" aria-pressed="' + !now + '">' + esc(t('whereThen')) + '</button>' +
+              '<button type="button" class="tn-flip" aria-label="' + esc(t('thenNow')) + '"><span class="sw" aria-hidden="true"><span class="sw-knob"></span></span></button>' +
+              '<button type="button" class="tn-btn" data-v="now" aria-pressed="' + now + '">' + esc(t('whereNow')) + '</button>' +
+            '</div>' +
+          '</figure>' +
+          '<div class="where-info">' +
+            '<p class="page-kicker">' + esc(bodyName(b.body)) + ' · ' + esc(L(b.site.name)) + '</p>' +
+            '<h2 class="where-title">' + esc(L(b.title)) + (L(b.craftName) !== L(b.title) ? ' <span>' + esc(L(b.craftName)) + '</span>' : '') + '</h2>' +
+            '<p class="where-status"><b>' + esc(t('statusLabel')) + ':</b> ' + esc(L(b.now.status)) + '</p>' +
+            '<p class="where-text">' + esc(L(b.now.text)) + '</p>' +
+            '<h3 class="tl-head">' + esc(t('whereTimeline')) + '</h3>' +
+            '<ol class="timeline">' +
+              b.timeline.map(function (e, i) {
+                return '<li' + (i === b.timeline.length - 1 ? ' class="tl-last"' : '') + '><span class="tl-date">' + esc(L(e.date)) + '</span><span class="tl-text">' + esc(L(e.text)) + '</span></li>';
+              }).join('') +
+            '</ol>' +
+            '<div class="where-actions">' +
+              '<a class="btn" href="#/book/' + b.id + '">' + esc(t('readItsBook')) + '</a>' +
+              '<a class="btn btn-ghost" href="#/map/' + b.id + '">' + esc(t('seeOnMap')) + '</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</section>';
+
+    var fig = app.querySelector('.then-now');
+    function setView(v) {
+      whereState.view = v;
+      var isNow = v === 'now';
+      fig.classList.toggle('is-now', isNow);
+      fig.classList.remove('flicker'); void fig.offsetWidth; fig.classList.add('flicker');
+      fig.querySelector('.tn-stamp').textContent = t(isNow ? 'whereNow' : 'whereThen');
+      fig.querySelectorAll('.tn-btn').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === v)); });
+      fig.querySelector('.tn-flip').setAttribute('aria-pressed', String(isNow));
+    }
+    fig.querySelector('.tn-flip').setAttribute('aria-pressed', String(now));
+    fig.querySelectorAll('.tn-btn').forEach(function (x) { x.addEventListener('click', function () { setView(x.getAttribute('data-v')); }); });
+    fig.querySelector('.tn-flip').addEventListener('click', function () { setView(whereState.view === 'now' ? 'then' : 'now'); });
+    app.querySelectorAll('.craft-tab').forEach(function (x) {
+      x.addEventListener('click', function () {
+        whereState.id = x.getAttribute('data-id');
+        try { history.replaceState(null, '', '#/where/' + whereState.id); } catch (e) { /* ignore */ }
+        VIEWS.where({ arg: whereState.id });
+        hydrateArt(app);
+        var tab = app.querySelector('.craft-tab[data-id="' + whereState.id + '"]');
+        if (tab) tab.focus({ preventScroll: true });
+      });
+    });
+  };
+
+  /* ---------- Graveyard map ----------
+     Moon / Mars tabs, a pixel map with a pin at each resting place
+     (locations approximate) and an info panel for the selected pin.     */
+
+  var mapState = { body: 'moon', id: null };
+
+  VIEWS.map = function (r) {
+    if (r.arg && getBook(r.arg)) { mapState.id = r.arg; mapState.body = getBook(r.arg).body; }
+    var body = mapState.body;
+    var list = DATA.books.filter(function (b) { return b.body === body; });
+    if (!mapState.id || getBook(mapState.id).body !== body) mapState.id = null;
+    var sel = mapState.id ? getBook(mapState.id) : null;
+
+    app.innerHTML =
+      '<section class="graveyard">' +
+        '<h1 class="h1">' + esc(t('mapTitle')) + '</h1>' +
+        '<p class="lead">' + esc(t('mapIntro')) + '</p>' +
+        '<div class="map-tabs" role="tablist">' +
+          ['moon', 'mars'].map(function (x) {
+            return '<button type="button" role="tab" class="map-tab" data-body="' + x + '" aria-selected="' + (x === body) + '">' +
+              '<canvas class="pix map-tab-icon" data-orb="' + x + '" aria-hidden="true"></canvas>' + esc(bodyName(x)) + '</button>';
+          }).join('') +
+        '</div>' +
+        '<div class="map-layout">' +
+          '<div class="map-frame panel">' +
+            '<div class="map-box">' +
+              '<canvas class="pix map-canvas" data-art="map:' + body + '" role="img" aria-label="' + esc(t('mapOf', { body: bodyName(body) })) + '"></canvas>' +
+              list.map(function (b) {
+                var x = (b.site.lon + 180) / 360 * 100, y = (90 - b.site.lat) / 180 * 100;
+                return '<button type="button" class="pin' + (sel && sel.id === b.id ? ' is-sel' : '') + '" data-id="' + b.id + '" style="left:' + x.toFixed(2) + '%;top:' + y.toFixed(2) + '%"' +
+                  ' aria-label="' + esc(L(b.craftName) + ', ' + L(b.site.name)) + '" aria-pressed="' + !!(sel && sel.id === b.id) + '">' +
+                  '<span class="pin-dot" aria-hidden="true"></span><span class="pin-label">' + esc(L(b.craftName)) + '</span></button>';
+              }).join('') +
+            '</div>' +
+            '<div class="map-axis"><span>180°' + esc(t('dirW')) + '</span><span>0°</span><span>180°' + esc(t('dirE')) + '</span></div>' +
+          '</div>' +
+          '<aside class="map-info panel" aria-live="polite">' +
+            (sel
+              ? artCanvas(sel.id, 'map-info-art', L(sel.craftName)) +
+                '<p class="page-kicker">' + esc(t('restingPlace')) + '</p>' +
+                '<h2 class="map-info-title">' + esc(L(sel.craftName)) + '</h2>' +
+                '<p class="map-site">' + esc(L(sel.site.name)) + '</p>' +
+                '<p class="map-coords">' + esc(coords(sel.site)) + ' <span class="approx">(' + esc(t('approx')) + ')</span></p>' +
+                (sel.site.note ? '<p class="map-note-small">' + esc(L(sel.site.note)) + '</p>' : '') +
+                '<p class="map-status">' + esc(L(sel.now.status)) + '</p>' +
+                '<div class="map-actions">' +
+                  '<a class="btn" href="#/book/' + sel.id + '">' + esc(t('readItsBook')) + '</a>' +
+                  '<a class="btn btn-ghost" href="#/where/' + sel.id + '">' + esc(t('thenNow')) + '</a>' +
+                '</div>'
+              : '<p class="map-hint">' + esc(t('mapPick')) + '</p>' +
+                '<ul class="map-list">' + list.map(function (b) {
+                  return '<li><button type="button" class="map-list-btn" data-id="' + b.id + '">' + artCanvas(b.id, 'map-list-art') +
+                    '<span>' + esc(L(b.craftName)) + '<small>' + esc(L(b.site.name)) + '</small></span></button></li>';
+                }).join('') + '</ul>') +
+          '</aside>' +
+        '</div>' +
+        '<p class="map-footnote">' + esc(t('mapNote')) + '</p>' +
+      '</section>';
+
+    function rerender() {
+      try { history.replaceState(null, '', '#/map' + (mapState.id ? '/' + mapState.id : '')); } catch (e) { /* ignore */ }
+      VIEWS.map({ arg: null });
+      hydrateArt(app);
+    }
+    app.querySelectorAll('.map-tab').forEach(function (x) {
+      x.addEventListener('click', function () {
+        if (mapState.body === x.getAttribute('data-body')) return;
+        mapState.body = x.getAttribute('data-body'); mapState.id = null; rerender();
+        var tab = app.querySelector('.map-tab[data-body="' + mapState.body + '"]'); if (tab) tab.focus({ preventScroll: true });
+      });
+    });
+    app.querySelectorAll('.pin, .map-list-btn').forEach(function (x) {
+      x.addEventListener('click', function () {
+        var id = x.getAttribute('data-id');
+        mapState.id = mapState.id === id && x.classList.contains('pin') ? null : id;
+        rerender();
+        var pin = app.querySelector('.pin[data-id="' + id + '"]'); if (pin) pin.focus({ preventScroll: true });
+      });
+    });
+  };
 
   VIEWS.mission = function () {
     app.innerHTML =
