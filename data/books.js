@@ -758,7 +758,7 @@
         h: { en: 'NASA sources', es: 'Fuentes de la NASA' },
         links: [
           { label: { en: 'Apollo 11 (Eagle): NASA NSSDCA, Apollo 11 Lunar Module', es: 'Apolo 11 (Eagle): NASA NSSDCA, módulo lunar del Apolo 11' }, url: 'https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C' },
-          { label: { en: 'GRAIL (Ebb and Flow): NASA Science, "GRAIL In Depth"', es: 'GRAIL (Ebb y Flow): NASA Science, «GRAIL In Depth»' }, url: 'https://science.nasa.gov/mission/grail/in-depth/' },
+          { label: { en: 'GRAIL (Ebb and Flow): NASA Science, GRAIL mission page', es: 'GRAIL (Ebb y Flow): NASA Science, página de la misión GRAIL' }, url: 'https://science.nasa.gov/mission/grail/' },
           { label: { en: 'Viking 1: NASA NSSDCA, Viking Mission to Mars', es: 'Viking 1: NASA NSSDCA, misión Viking a Marte' }, url: 'https://nssdc.gsfc.nasa.gov/planetary/viking.html' },
           { label: { en: 'Opportunity: NASA Science, Mars Exploration Rover Opportunity (MER-B)', es: 'Opportunity: NASA Science, Mars Exploration Rover Opportunity (MER-B)' }, url: 'https://science.nasa.gov/mission/mer-opportunity/' }
         ]
@@ -806,6 +806,21 @@
             b: { en: 'Interface translations:', es: 'Traducción de la interfaz:' },
             t: { en: 'Small UI text (buttons, labels, menu items) was translated by Claude and reviewed by us.',
                  es: 'Los textos cortos de la interfaz (botones, etiquetas, menús) los tradujo Claude y los revisamos nosotras.' }
+          },
+          {
+            b: { en: 'Pixel art:', es: 'Pixel art:' },
+            t: { en: 'The spacecraft illustrations (on their missions and as they look today), the coloring pages, and the Moon and Mars maps were drawn by Claude in code, following our retro pixel-art style direction.',
+                 es: 'Las ilustraciones de las naves (en su misión y como se ven hoy), las páginas para colorear y los mapas de la Luna y de Marte los dibujó Claude con código, siguiendo nuestra dirección de estilo pixel art retro.' }
+          },
+          {
+            b: { en: '"Where are they now?" texts:', es: 'Textos de «¿Dónde están ahora?»:' },
+            t: { en: 'The timelines and the "today" descriptions for each spacecraft were drafted by Claude from our stories and NASA mission dates, and reviewed by us.',
+                 es: 'Las líneas del tiempo y las descripciones de «hoy» de cada nave las redactó Claude a partir de nuestras historias y de las fechas de las misiones de la NASA, y las revisamos nosotras.' }
+          },
+          {
+            b: { en: 'This page:', es: 'Esta página:' },
+            t: { en: 'Claude corrected the punctuation of our English text and translated this "Our mission" page into Spanish.',
+                 es: 'Claude corrigió la puntuación de nuestro texto en inglés y tradujo al español esta página de «Nuestra misión».' }
           }
         ]
       }
