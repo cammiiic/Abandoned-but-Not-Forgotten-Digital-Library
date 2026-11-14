@@ -36,20 +36,6 @@
     return out;
   }
 
-  function placeholderPages() {
-    var out = [];
-    for (var i = 1; i <= 5; i++) {
-      out.push({
-        title: { en: 'Part ' + i, es: 'Parte ' + i },
-        text: {
-          en: 'This story is still being written. Come back soon to read this part of the book.',
-          es: 'Esta historia todavía se está escribiendo. Vuelve pronto para leer esta parte del libro.'
-        }
-      });
-    }
-    return out;
-  }
-
   /* ---------- UI strings ---------- */
 
   var ui = {
@@ -329,7 +315,6 @@
     {
       id: 'grail',
       body: 'moon',
-      placeholder: true,
       cover: '#4a3570',
       title: { en: 'GRAIL', es: 'GRAIL' },
       subtitle: { en: 'Ebb and Flow', es: 'Ebb y Flow' },
@@ -339,7 +324,48 @@
         name: { en: 'GRAIL Ebb & Flow, Sally K. Ride Impact Site', es: 'GRAIL Ebb y Flow, sitio de impacto Sally K. Ride' },
         lat: 75.62, lon: -26.63, note: null
       },
-      pages: placeholderPages(),
+      pages: [
+        {
+          title: { en: 'The Twins', es: '' },
+          text: {
+            en: 'On September 10, 2011, a rocket launched from Florida, carrying two identical spacecraft. They were like twins, both built to work together as a team. Their mission was called GRAIL, and their main job was to study the Moon\'s gravity. In the beginning, the twins had no names, so NASA held a contest for students. A class of fourth-graders in Montana won, and they gave the twins the names of Ebb and Flow, just like ocean tides, which are caused by the Moon\'s gravity. Beautiful meaning, right?',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'The Long Trip', es: '' },
+          text: {
+            en: 'It took the Apollo astronauts three days to reach the Moon, but the twins took the slow way to save fuel, which made the trip take more than three months. Ebb arrived before Flow, on New Year\'s Eve 2011. Ebb waited alone for its twin, Flow, to arrive so they could work together as the team they were. How sweet!\n\n' +
+                'Then, a day later, Flow finally arrived. Once they were both together, they lined up one behind the other and started orbiting the Moon, like two cars on a raceway.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'The Invisible Map', es: '' },
+          text: {
+            en: 'The Moon\'s gravity isn\'t the same everywhere. Some areas have very heavy rocks hidden underground that pull a bit harder, and when the twins flew over those places, the distance between them changed by a tiny bit, smaller than the width of human hair. After measuring those changes for almost nine months, Ebb and Flow made the most detailed gravity map of the Moon to ever exist. This showed scientists that those heavy spots were created billions of years ago, when very big asteroids crashed into the Moon\'s surface.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Students in Space', es: '' },
+          text: {
+            en: 'One very interesting fact about the twins is that they carried cameras called MoonKAM, and these allowed middle school students across the country to control them. The students chose places on the Moon, and the twins would take pictures for them.\n\n' +
+                'The program was run by Sally Ride\'s organization. You may be wondering: who is Sally Ride?\n\n' +
+                'Sally Ride was the first American woman in space, and she really wanted young people to develop a love for science. Sadly, she passed away in 2012, while the twins were still orbiting the Moon.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Together Until the End', es: '' },
+          text: {
+            en: 'By December 2012, the twins were already running out of fuel, and instead of just letting them crash anywhere, NASA chose a mountain near the Moon\'s north pole. On December 17, 2012, Ebb hit the mountain first, and then Flow followed just a few seconds later, right beside Ebb.\n\n' +
+                'NASA then named the crash site after Sally Ride, so the twins would rest in a place named after someone who believed that young people could reach the stars. In a way, the twins made that true: they connected young people with space.\n\n' +
+                'They stayed together until the very end.',
+            es: ''
+          }
+        }
+      ],
       art: {
         background: '1', // pre-filled on the coloring page
         palette: {
@@ -375,7 +401,6 @@
     {
       id: 'viking1',
       body: 'mars',
-      placeholder: true,
       cover: '#7a3320',
       title: { en: 'Viking 1', es: 'Viking 1' },
       subtitle: { en: 'The first Mars lander', es: 'El primer aterrizador en Marte' },
@@ -385,7 +410,46 @@
         name: { en: 'Viking 1 lander, Chryse Planitia', es: 'Aterrizador Viking 1, Chryse Planitia' },
         lat: 22.48, lon: -47.94, note: null
       },
-      pages: placeholderPages(),
+      pages: [
+        {
+          title: { en: 'The Pair', es: '' },
+          text: {
+            en: 'On August 20, 1975, a rocket launched from Florida carrying a new spacecraft called Viking 1. It was really two machines in one: an orbiter, which would orbit Mars from above, and a lander, which would go down to the surface. Together they had a big mission: to look for signs of life on Mars. Before launch there was a small surprise, and it was that the spacecraft that had to go first had a battery problem, so NASA decided to replace it with its twin, and the backup became Viking 1.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'A Change of Plans', es: '' },
+          text: {
+            en: 'After a long trip that was around ten months, Viking 1 finally reached Mars in June 1976. The orbiter started to take pictures of the spot where the lander was supposed to touch down, but the ground was way bumpier and more uneven than expected, and landing there could have destroyed the lander. So, scientists decided to use the new photos to pick a better spot: a smooth, wide place called Chryse Planitia, which means "Golden Plain."',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'First Look at Mars', es: '' },
+          text: {
+            en: 'On July 20, 1976, the lander detached itself from the orbiter and fell through Mars\' thin air, testing it as it went down. It managed to land safely, becoming the first American spacecraft to ever land on Mars. Right away, it began to take photos of its new home: red dust and rocks. It was extremely cold there: −86 °C before sunrise and around −33 °C in the afternoon.\n\n' +
+                'For the first time ever, humans on Earth were able to see what it was like to stand on Mars.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Looking for Life', es: '' },
+          text: {
+            en: 'A week later, the lander started looking for signs of life. It used its robot arm to scoop up some Martian soil and place it inside its mini laboratory. Some of the tests gave weird results that could have meant life, but, unfortunately, the most important test found no signs of it. Mars\' soil had a lot of sulfur, unlike anything that was found on Earth or the Moon. The mystery of life on Mars wasn\'t solved.\n\n' +
+                'Scientists still argue about those results today. In the meantime, the lander kept sending weather updates for years.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'The Last Message', es: '' },
+          text: {
+            en: 'Up in space, the orbiter kept working until 1980, when it ran out of fuel after orbiting Mars 1,489 times. Down below, the lander kept going alone on the ground, and, in 1982, it was renamed the Thomas Mutch Memorial Station, after the leader of the Viking camera team, who had passed away. Then, on November 11, 1982, someone on Earth had sent the wrong command to it by accident, and the lander stopped answering. NASA tried multiple times to reach it, but it had completely lost its connection to Earth.\n\n' +
+                'After more than 6 years of work, Viking 1 went silent. Still sitting on the Golden Plain, waiting.',
+            es: ''
+          }
+        }
+      ],
       art: {
         background: '1', // pre-filled on the coloring page
         palette: {
@@ -421,7 +485,6 @@
     {
       id: 'opportunity',
       body: 'mars',
-      placeholder: true,
       cover: '#8a5a1c',
       title: { en: 'Opportunity', es: 'Opportunity' },
       subtitle: { en: 'The rover that kept going', es: 'El róver que no se detuvo' },
@@ -431,7 +494,47 @@
         name: { en: 'Opportunity, Perseverance Valley', es: 'Opportunity, Valle Perseverance' },
         lat: -2.3, lon: -5.3, note: null
       },
-      pages: placeholderPages(),
+      pages: [
+        {
+          title: { en: 'The Twin Rovers', es: '' },
+          text: {
+            en: 'On July 7, 2003, a rocket carrying a robot called Opportunity launched from Cape Canaveral, Florida. Opportunity was a rover, a six-wheeled robot about the size of a golf cart, and it had a twin named Spirit, which was sent to the other side of Mars. Their mission was to study rocks and soil and look for clues that Mars once had water, and maybe even conditions where life could exist.\n\n' +
+                'Opportunity was designed to last only 90 Martian days, or around three Earth months, and to travel only about 1 kilometer.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Bouncing onto Mars', es: '' },
+          text: {
+            en: 'After six months in space, Opportunity finally reached Mars on January 24, 2004, just 20 days after Spirit did. It was wrapped in giant airbags, and when it hit the ground, it bounced at least 26 times before rolling to a stop in a flat area called Meridiani Planum, right inside a crater named Eagle. Incredible, right, reader?\n\n' +
+                'Its landing site was named the Challenger Memorial Station, in honor of the crew of the Space Shuttle Challenger, lost in 1986.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Never Giving Up', es: '' },
+          text: {
+            en: 'Opportunity\'s journey wasn\'t easy. In 2005, its wheels got stuck in sand, and it took engineers six weeks, moving it just a few centimeters at a time, to be able to free it. In 2007, massive dust storms covered Mars and blocked most of the sunlight that Opportunity needed for power, so it had to stop and wait about 6 weeks for the sky to clear. But it kept going, and by 2010, Opportunity had been working longer than any spacecraft on Mars, breaking the record set by Viking 1. Even its twin, Spirit, had already gone silent.\n\n' +
+                'Now Opportunity was exploring alone.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Records and Memories', es: '' },
+          text: {
+            en: 'Opportunity kept impressing us as it kept breaking records, and in 2015, it became the first ever to travel the distance of a full marathon on another world. In 2016, it even climbed the steepest slope any rover had ever driven on Mars. Luckily, sometimes the wind would blow the dust off its solar panels, giving it new energy. Opportunity also carried a special memory: as a tribute to the victims, a small piece of its rock-grinding tool was made from aluminum recovered from the World Trade Center towers, which were destroyed on September 11, 2001.',
+            es: ''
+          }
+        },
+        {
+          title: { en: 'Perseverance Valley', es: '' },
+          text: {
+            en: 'In 2017, Opportunity drove into a gully called Perseverance Valley. Sadly, in June 2018, a very big dust storm covered the entire planet and blocked out the Sun. And, without any sunlight, Opportunity couldn\'t get power. Its last signal reached Earth on June 10, 2018. NASA kept trying to reach it for months, but Opportunity never answered back. Finally, on February 13, 2019, NASA declared the mission over.\n\n' +
+                'Opportunity surprised everyone. It was supposed to only last 90 days, but instead it lasted almost 15 years, about 60 times longer than expected, and drove over 45 kilometers when it was made to only drive 1. Opportunity still rests in Perseverance Valley, the perfect name for a rover that never gave up and kept going against all odds.',
+            es: ''
+          }
+        }
+      ],
       art: {
         background: '1', // pre-filled on the coloring page
         palette: {
