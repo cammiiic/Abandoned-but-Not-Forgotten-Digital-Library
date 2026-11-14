@@ -203,7 +203,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 
 /* the "live feed" window around the hero art */
 .feed {
-  margin: 0; padding: 0; width: 280px;
+  margin: 0; padding: 0; width: 312px;
   background: var(--ink); border: var(--px) solid var(--ink);
   box-shadow: 0 0 0 var(--px) var(--night-3), 10px 10px 0 rgba(0,0,0,.5);
   animation: bob 4s steps(4) infinite alternate;
@@ -214,7 +214,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 }
 .feed-coord { margin-left: auto; color: var(--muted); }
 .rec { width: 8px; height: 8px; background: #ff4a3d; animation: blink 1s steps(1) infinite; }
-.feed-art { display: block; width: 256px; height: 256px; margin: 8px auto 0; }
+.feed-art { display: block; width: 288px; height: 288px; margin: 8px auto 0; }
 .feed figcaption { font-size: 17px; color: var(--muted); padding: 6px 10px 8px; text-align: center; }
 
 @keyframes bob { from { transform: translateY(0); } to { transform: translateY(-8px); } }
@@ -230,14 +230,14 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
 .tile {
-  display: grid; grid-template-columns: 64px 1fr; grid-template-rows: auto 1fr; column-gap: 14px; row-gap: 4px;
+  display: grid; grid-template-columns: 96px 1fr; grid-template-rows: auto 1fr; column-gap: 14px; row-gap: 4px;
   padding: 14px; text-decoration: none; color: var(--text);
   background: rgba(20, 34, 74, .92); border: var(--px) solid var(--ink);
   box-shadow: inset 0 0 0 3px var(--night-3), 6px 6px 0 var(--ink);
   transition: transform .15s steps(3), box-shadow .15s steps(3);
 }
 .tile:hover, .tile:focus-visible { transform: translate(-3px, -3px); box-shadow: inset 0 0 0 3px var(--gold), 9px 9px 0 var(--ink); }
-.tile-art { grid-row: 1 / 3; width: 64px; height: 64px; border: 3px solid var(--ink); }
+.tile-art { grid-row: 1 / 3; width: 96px; height: 96px; border: 3px solid var(--ink); }
 .tile-title { font-family: var(--font-pixel); font-size: 10px; line-height: 1.5; color: var(--gold); }
 .tile-text { font-size: 19px; line-height: 1.1; color: var(--muted); }
 
@@ -291,7 +291,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 }
 .cover-card {
   position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px;
-  width: 172px; min-height: 248px; padding: 16px 12px 14px 20px;
+  width: 224px; min-height: 300px; padding: 16px 12px 14px 20px;
   background: var(--cover, #2b3f7a);
   color: #fff; text-decoration: none; text-align: center;
   border: var(--px) solid var(--ink);
@@ -303,7 +303,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   position: absolute; left: 0; top: 0; bottom: 0; width: 10px;
   background: rgba(0,0,0,.35); border-right: 2px solid rgba(255,255,255,.15);
 }
-.cover-art { width: 128px; height: 128px; border: 3px solid var(--ink); background: var(--night); }
+.cover-art { width: 192px; height: 192px; border: 3px solid var(--ink); background: var(--night); }
 .cover-card { overflow: hidden; }
 .cover-card:hover, .cover-card:focus-visible {
   transform: translateY(-12px) rotate(-1.5deg);
@@ -324,7 +324,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 @media (max-width: 640px) {
   .shelf { gap: 16px; padding: 0 8px; justify-content: center; }
   .cover-card { width: calc(50% - 8px); min-width: 140px; min-height: 220px; padding-left: 16px; }
-  .cover-art { width: 128px; height: 128px; max-width: 100%; }
+  .cover-art { width: 144px; height: 144px; max-width: 100%; height: auto; aspect-ratio: 1; }
   .cover-title { font-size: 10px; }
 }
 /* end:library */
@@ -407,7 +407,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 .cover-inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 14px; }
 .cover-kicker { font-family: var(--font-pixel); font-size: 10px; letter-spacing: 2px; margin: 0; color: #e9e2cc; }
 .book-title { font-size: clamp(22px, 6vw, 36px); color: var(--gold); text-shadow: 4px 4px 0 var(--ink); margin: 0; }
-.book-cover-art { width: 256px; height: 256px; border: var(--px) solid var(--ink); box-shadow: 6px 6px 0 rgba(0,0,0,.4); }
+.book-cover-art { width: 288px; height: 288px; border: var(--px) solid var(--ink); box-shadow: 6px 6px 0 rgba(0,0,0,.4); }
 .book-sub { font-size: 26px; margin: 0 0 8px; }
 
 /* back cover */
@@ -417,7 +417,7 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   box-shadow: inset 10px 0 0 rgba(0,0,0,.3), 4px 4px 0 var(--paper-2), 8px 8px 0 var(--ink), 12px 12px 0 rgba(0,0,0,.35);
 }
 .back-inner { display: flex; flex-direction: column; align-items: center; gap: 22px; }
-.back-art { width: 128px; height: 128px; border: var(--px) solid var(--ink); filter: grayscale(.7) brightness(.65); transform: rotate(-4deg); }
+.back-art { width: 192px; height: 192px; border: var(--px) solid var(--ink); filter: grayscale(.7) brightness(.65); transform: rotate(-4deg); }
 .back-text { font-family: var(--font-pixel); font-size: clamp(14px, 3.6vw, 20px); line-height: 1.6; color: var(--gold); text-shadow: 3px 3px 0 var(--ink); margin: 0; max-width: 18ch; }
 .back-actions { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 

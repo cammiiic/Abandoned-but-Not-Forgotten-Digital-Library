@@ -43,80 +43,115 @@
   var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
   function bayer(x, y) { return (BAYER[(y & 3) * 4 + (x & 3)] + 0.5) / 16; }
 
+  // The output pixel currently being painted. Dithering and foil texture
+  // use it so they stay one real pixel wide at any resolution.
+  var OX = 0, OY = 0;
+
   // dithered gradient: t in 0..1 across colors
-  function grad(colors, t, x, y) {
+  function grad(colors, t) {
     t = Math.max(0, Math.min(1, t));
     var f = t * (colors.length - 1), i = Math.floor(f), r = f - i;
     if (i >= colors.length - 1) return colors[colors.length - 1];
     // keep flat color clusters; dither only a narrow band between shades
     r = Math.max(0, Math.min(1, (r - 0.5) * 2.6 + 0.5));
-    return r > bayer(x, y) ? colors[i + 1] : colors[i];
+    return r > bayer(OX, OY) ? colors[i + 1] : colors[i];
   }
 
-  function S(w, h) { this.w = w; this.h = h; this.p = new Array(w * h).fill(null); }
-  S.prototype.set = function (x, y, c) {
-    x = Math.floor(x); y = Math.floor(y);
-    if (!c || x < 0 || y < 0 || x >= this.w || y >= this.h) return;
-    this.p[y * this.w + x] = c;
+  /* A layer. Drawing coordinates are always on a 64-unit design grid
+     (w x h); the layer itself holds (w*k) x (h*k) real pixels.
+     Shapes are tested at every real pixel, so a higher k gives smoother
+     curves and thinner lines, not just bigger blocks.                    */
+  function S(w, h, k) {
+    this.k = k || 1; this.w = w; this.h = h;
+    this.W = Math.round(w * this.k); this.H = Math.round(h * this.k);
+    this.p = new Array(this.W * this.H).fill(null);
+  }
+  S.prototype.put = function (ox, oy, c) {
+    if (ox < 0 || oy < 0 || ox >= this.W || oy >= this.H) return;
+    OX = ox; OY = oy;
+    var v = typeof c === 'function' ? c(Math.floor((ox + 0.5) / this.k), Math.floor((oy + 0.5) / this.k)) : c;
+    if (v) this.p[oy * this.W + ox] = v;
   };
-  S.prototype.get = function (x, y) {
-    if (x < 0 || y < 0 || x >= this.w || y >= this.h) return null;
-    return this.p[y * this.w + x];
-  };
-  function col(c, x, y) { return typeof c === 'function' ? c(x, y) : c; }
-  S.prototype.rect = function (x, y, w, h, c) {
-    for (var j = y; j < y + h; j++) for (var i = x; i < x + w; i++) this.set(i, j, col(c, i, j));
+  // paint every real pixel whose centre (in design units) passes test()
+  S.prototype.each = function (x0, y0, x1, y1, test, c) {
+    var k = this.k;
+    var ax = Math.max(0, Math.floor(x0 * k)), bx = Math.min(this.W - 1, Math.ceil(x1 * k));
+    var ay = Math.max(0, Math.floor(y0 * k)), by = Math.min(this.H - 1, Math.ceil(y1 * k));
+    for (var oy = ay; oy <= by; oy++) {
+      for (var ox = ax; ox <= bx; ox++) {
+        if (test((ox + 0.5) / k, (oy + 0.5) / k)) this.put(ox, oy, c);
+      }
+    }
     return this;
   };
+  S.prototype.set = function (x, y, c) {
+    x = Math.floor(x); y = Math.floor(y);
+    return this.each(x, y, x + 1, y + 1, function (lx, ly) { return lx >= x && lx < x + 1 && ly >= y && ly < y + 1; }, c);
+  };
+  S.prototype.rect = function (x, y, w, h, c) {
+    return this.each(x, y, x + w, y + h, function (lx, ly) { return lx >= x && lx < x + w && ly >= y && ly < y + h; }, c);
+  };
+  // 1-real-pixel line between design-grid pixel centres
   S.prototype.line = function (x0, y0, x1, y1, c) {
-    var dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1, dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1, err = dx + dy;
+    var k = this.k;
+    var a = Math.floor((x0 + 0.5) * k), b = Math.floor((y0 + 0.5) * k);
+    var e = Math.floor((x1 + 0.5) * k), f = Math.floor((y1 + 0.5) * k);
+    var dx = Math.abs(e - a), sx = a < e ? 1 : -1, dy = -Math.abs(f - b), sy = b < f ? 1 : -1, err = dx + dy;
     for (;;) {
-      this.set(x0, y0, col(c, x0, y0));
-      if (x0 === x1 && y0 === y1) break;
+      this.put(a, b, c);
+      if (a === e && b === f) break;
       var e2 = 2 * err;
-      if (e2 >= dy) { err += dy; x0 += sx; }
-      if (e2 <= dx) { err += dx; y0 += sy; }
+      if (e2 >= dy) { err += dy; a += sx; }
+      if (e2 <= dx) { err += dx; b += sy; }
     }
     return this;
   };
   S.prototype.ellipse = function (cx, cy, rx, ry, c) {
-    for (var y = Math.floor(cy - ry - 1); y <= Math.ceil(cy + ry + 1); y++) {
-      for (var x = Math.floor(cx - rx - 1); x <= Math.ceil(cx + rx + 1); x++) {
-        var a = (x + 0.5 - cx) / rx, b = (y + 0.5 - cy) / ry;
-        if (a * a + b * b <= 1) this.set(x, y, col(c, x, y));
-      }
-    }
-    return this;
+    return this.each(cx - rx - 1, cy - ry - 1, cx + rx + 1, cy + ry + 1, function (lx, ly) {
+      var a = (lx - cx) / rx, b = (ly - cy) / ry;
+      return a * a + b * b <= 1;
+    }, c);
   };
   S.prototype.poly = function (pts, c) {
     var minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
     pts.forEach(function (p) { minX = Math.min(minX, p[0]); maxX = Math.max(maxX, p[0]); minY = Math.min(minY, p[1]); maxY = Math.max(maxY, p[1]); });
-    for (var y = Math.floor(minY); y <= Math.ceil(maxY); y++) {
-      for (var x = Math.floor(minX); x <= Math.ceil(maxX); x++) {
-        var px = x + 0.5, py = y + 0.5, inside = false;
-        for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
-          var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
-          if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
-        }
-        if (inside) this.set(x, y, col(c, x, y));
+    return this.each(minX, minY, maxX, maxY, function (px, py) {
+      var inside = false;
+      for (var i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        var xi = pts[i][0], yi = pts[i][1], xj = pts[j][0], yj = pts[j][1];
+        if ((yi > py) !== (yj > py) && px < (xj - xi) * (py - yi) / (yj - yi) + xi) inside = !inside;
       }
-    }
-    return this;
+      return inside;
+    }, c);
   };
-  // 1px outline around everything drawn on this layer
+  S.prototype.get = function (ox, oy) {
+    if (ox < 0 || oy < 0 || ox >= this.W || oy >= this.H) return null;
+    return this.p[oy * this.W + ox];
+  };
+  // 1 real pixel outline around everything drawn on this layer
   S.prototype.outline = function (c) {
     var add = [];
-    for (var y = 0; y < this.h; y++) for (var x = 0; x < this.w; x++) {
+    for (var y = 0; y < this.H; y++) for (var x = 0; x < this.W; x++) {
       if (this.get(x, y)) continue;
-      if (this.get(x - 1, y) || this.get(x + 1, y) || this.get(x, y - 1) || this.get(x, y + 1)) add.push(x, y);
+      if (this.get(x - 1, y) || this.get(x + 1, y) || this.get(x, y - 1) || this.get(x, y + 1)) add.push(y * this.W + x);
     }
-    for (var i = 0; i < add.length; i += 2) this.set(add[i], add[i + 1], c);
+    for (var i = 0; i < add.length; i++) this.p[add[i]] = c;
     return this;
   };
   S.prototype.over = function (o) {
     for (var i = 0; i < o.p.length; i++) if (o.p[i]) this.p[i] = o.p[i];
     return this;
   };
+
+  // background + outlined spacecraft + thin details; remembers which
+  // pixels belong to the spacecraft (used by the coloring page)
+  function compose(bg, fg, fx) {
+    var craft = new Array(bg.p.length);
+    for (var i = 0; i < craft.length; i++) craft[i] = !!(fg.p[i] || fx.p[i]);
+    var out = bg.over(fg).over(fx);
+    out.craft = craft;
+    return out;
+  }
 
   var rgbCache = {};
   function rgb(hex) {
@@ -125,8 +160,8 @@
   }
   S.prototype.toCanvas = function () {
     var c = document.createElement('canvas');
-    c.width = this.w; c.height = this.h;
-    var ctx = c.getContext('2d'), img = ctx.createImageData(this.w, this.h);
+    c.width = this.W; c.height = this.H;
+    var ctx = c.getContext('2d'), img = ctx.createImageData(this.W, this.H);
     for (var i = 0; i < this.p.length; i++) {
       if (!this.p[i]) continue;
       var v = rgb(this.p[i]);
@@ -143,16 +178,16 @@
   // shaded ball; o.shade(nx, ny, t, x, y) may return a new t or a color
   function sphere(s, cx, cy, r, ramp, o) {
     o = o || {};
-    for (var y = Math.floor(cy - r); y <= Math.ceil(cy + r); y++) {
-      for (var x = Math.floor(cx - r); x <= Math.ceil(cx + r); x++) {
-        var nx = (x + 0.5 - cx) / r, ny = (y + 0.5 - cy) / r, d2 = nx * nx + ny * ny;
-        if (d2 > 1) continue;
-        var nz = Math.sqrt(1 - d2), lit = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2];
-        var t = 1 - (lit + 0.25) / 1.25;
-        if (o.shade) t = o.shade(nx, ny, t, x, y);
-        s.set(x, y, typeof t === 'string' ? t : grad(ramp, t, x, y));
-      }
-    }
+    var nx, ny;
+    s.each(cx - r, cy - r, cx + r, cy + r, function (lx, ly) {
+      nx = (lx - cx) / r; ny = (ly - cy) / r;
+      return nx * nx + ny * ny <= 1;
+    }, function () {
+      var nz = Math.sqrt(Math.max(0, 1 - nx * nx - ny * ny)), lit = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2];
+      var t = 1 - (lit + 0.25) / 1.25;
+      if (o.shade) t = o.shade(nx, ny, t);
+      return typeof t === 'string' ? t : grad(ramp, t);
+    });
   }
 
   function craterShade(list) {
@@ -213,7 +248,7 @@
     // distant hills, hazy
     for (var x = 0; x < s.w; x++) {
       var top = y0 - Math.round(2 + 2 * Math.sin(x * 0.11 + seed) + 1.4 * Math.sin(x * 0.31 + seed * 2));
-      for (var y = top; y < y0; y++) s.set(x, y, grad([P.k2, P.k3], (y - top) / 4, x, y));
+      s.rect(x, top, 1, y0 - top, (function (top) { return function (xx, y) { return grad([P.k2, P.k3], (y - top) / 4); }; })(top));
     }
     s.rect(0, y0, s.w, h, function (x, y) { return grad([P.r1, P.r1, P.r2, P.r1], (y - y0) / h, x, y); });
     for (var i = 0; i < 140; i++) s.set(Math.floor(r() * s.w), y0 + 1 + Math.floor(r() * h), r() > 0.5 ? P.r2 : P.r0);
@@ -228,22 +263,23 @@
     var r = rng(seed);
     var cache = {};
     return function (x, y) {
-      var k = y + ',' + Math.floor((x + (y * 5) % 4) / 4);
+      var k = OY + ',' + Math.floor((OX + (OY * 5) % 4) / 4);   // streaks in real pixels
       if (!cache[k]) cache[k] = r();
       var v = cache[k] * 0.85 + (bias ? bias(x, y) : 0);
       return v < 0.14 ? ramp[0] : v < 0.6 ? ramp[1] : v < 0.82 ? ramp[2] : ramp[3];
     };
   }
 
+  // a 2-unit-wide leg: lit half and shaded half, smooth at any resolution
   function strut(s, x0, y0, x1, y1, light, dark) {
-    s.line(x0, y0, x1, y1, light);
-    s.line(x0 + 1, y0, x1 + 1, y1, dark);
+    s.poly([[x0, y0], [x0 + 1, y0], [x1 + 1, y1 + 1], [x1, y1 + 1]], light);
+    s.poly([[x0 + 1, y0], [x0 + 2, y0], [x1 + 2, y1 + 1], [x1 + 1, y1 + 1]], dark);
   }
 
   /* ---------- Apollo 11: Eagle at Tranquility Base ---------- */
 
-  function eagle(f) {
-    var bg = new S(64, 64), fg = new S(64, 64), fx = new S(64, 64);
+  function eagle(f, k) {
+    var bg = new S(64, 64, k), fg = new S(64, 64, k), fx = new S(64, 64, k);
     spaceSky(bg, 50);
     stars(bg, 0, 46, 11, 0.03, f);
     // Earth hanging in the black sky
@@ -320,7 +356,7 @@
     fx.line(20, 17, 17, 10, P.s2); fx.set(17, 9, P.s1);                                                // VHF antenna
     if (f < 2) { fx.set(32, 11, P.red); fx.set(31, 11, P.red2); }                                      // beacon
 
-    return bg.over(fg).over(fx);
+    return compose(bg, fg, fx);
   }
 
   /* ---------- GRAIL: Ebb and Flow mapping the Moon's gravity ---------- */
@@ -345,8 +381,8 @@
     if ((f + seed) % 4 < 2) fx.set(cx - 3, cy - 5, P.red);
   }
 
-  function grail(f) {
-    var bg = new S(64, 64), fg = new S(64, 64), fx = new S(64, 64);
+  function grail(f, k) {
+    var bg = new S(64, 64, k), fg = new S(64, 64, k), fx = new S(64, 64, k);
     spaceSky(bg, 64);
     stars(bg, 0, 50, 21, 0.035, f);
     // the Moon's limb filling the bottom of the frame
@@ -361,13 +397,13 @@
     for (var i = 0; i <= n; i++) {
       if ((i + f) % 4 < 2) fx.set(Math.round(x0 + (x1 - x0) * i / n), Math.round(y0 + (y1 - y0) * i / n), i % 2 ? P.cyan : P.cyan2);
     }
-    return bg.over(fg).over(fx);
+    return compose(bg, fg, fx);
   }
 
   /* ---------- Viking 1 in Chryse Planitia ---------- */
 
-  function viking1(f) {
-    var bg = new S(64, 64), fg = new S(64, 64), fx = new S(64, 64);
+  function viking1(f, k) {
+    var bg = new S(64, 64, k), fg = new S(64, 64, k), fx = new S(64, 64, k);
     marsSky(bg, 44);
     marsGround(bg, 44, 7, 12);
     rock(bg, 6, 52, 5, 3.2, [P.r0, P.r2, P.r3, P.r4]);           // a big boulder, like "Big Joe"
@@ -410,13 +446,13 @@
     fx.line(25, 15, 25, 11, P.s2); fx.set(25, 10, P.s0);                       // feed horn
     fx.line(48, 32, 54, 24, P.s2); fx.rect(53, 22, 3, 2, P.s1);                 // weather boom
     if (f < 2) fx.set(25, 10, P.red);
-    return bg.over(fg).over(fx);
+    return compose(bg, fg, fx);
   }
 
   /* ---------- Opportunity at Perseverance Valley ---------- */
 
-  function opportunity(f) {
-    var bg = new S(64, 64), fg = new S(64, 64), fx = new S(64, 64), r = rng(9);
+  function opportunity(f, k) {
+    var bg = new S(64, 64, k), fg = new S(64, 64, k), fx = new S(64, 64, k), r = rng(9);
     marsSky(bg, 42);
     marsGround(bg, 42, 13, 8);
     // tiny hematite "blueberries" in the soil
@@ -458,7 +494,7 @@
     fx.set(39, 10, f % 2 ? P.b0 : P.cyan); fx.set(45, 10, f % 2 ? P.cyan : P.b0);  // camera lenses glint
     fx.line(20, 28, 20, 25, P.s3); fx.ellipse(20.5, 23.5, 3.6, 1.8, function (x) { return x < 20 ? P.s0 : P.s2; });  // high-gain dish
     fx.line(13, 28, 13, 21, P.s2); fx.set(13, 20, P.s0);                                                            // low-gain antenna
-    return bg.over(fg).over(fx);
+    return compose(bg, fg, fx);
   }
 
   /* ---------- sky bodies (32 x 32) ---------- */
@@ -501,15 +537,35 @@
   };
   var FRAMES = 4, cache = {};
 
+  // Display resolution of the scenes. Default 96 x 96; add ?res=64 (or 80, 128)
+  // to the page address to compare.
+  var RES = 96;
+  try {
+    var q = /[?&]res=(\d+)/.exec(location.search);
+    if (q && +q[1] >= 32 && +q[1] <= 192) RES = +q[1];
+  } catch (e) { /* ignore */ }
+  var K = RES / 64;
+
   function frameCanvas(id, frame) {
     var key = id + '#' + frame;
-    if (!cache[key]) cache[key] = MAKERS[id](frame).toCanvas();
+    if (!cache[key]) cache[key] = MAKERS[id](frame, id.indexOf('orb:') === 0 ? 1 : K).toCanvas();
     return cache[key];
   }
 
+  // name of each palette color, by hex (used to group colors for coloring)
+  var NAME_OF = {};
+  Object.keys(P).forEach(function (n) { NAME_OF[P[n]] = n; });
+
   window.ABNF_SPRITES = {
     FRAMES: FRAMES,
+    RES: RES,
     has: function (id) { return !!MAKERS[id]; },
+    // 64 x 64 data for the coloring page: real colors + which pixels are the spacecraft
+    coloring: function (id) {
+      if (!MAKERS[id] || id.indexOf('orb:') === 0) return null;
+      var s = MAKERS[id](0, 1);
+      return { w: s.W, h: s.H, px: s.p, craft: s.craft, nameOf: function (hex) { return NAME_OF[hex] || null; } };
+    },
     draw: function (canvas, id, frame) {
       var src = frameCanvas(id, (frame || 0) % FRAMES);
       if (canvas.width !== src.width) { canvas.width = src.width; canvas.height = src.height; }
