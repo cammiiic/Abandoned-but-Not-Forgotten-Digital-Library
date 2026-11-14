@@ -162,9 +162,24 @@
 
   /* ---------- language ---------- */
 
+  var LANG_KEY = 'abnf-lang';
+
+  // Saved choice first, then the browser language, then English
   function initialLang() {
+    try {
+      var saved = localStorage.getItem(LANG_KEY);
+      if (LANGS.indexOf(saved) !== -1) return saved;
+    } catch (e) { /* storage blocked: fall through */ }
     var nav = (navigator.language || 'en').toLowerCase();
     return nav.indexOf('es') === 0 ? 'es' : 'en';
+  }
+
+  function setLang(lang) {
+    if (LANGS.indexOf(lang) === -1 || lang === state.lang) return;
+    state.lang = lang;
+    try { localStorage.setItem(LANG_KEY, lang); } catch (e) { /* ignore */ }
+    applyStatic();
+    render();   // views keep their own state (book page, quiz progress…)
   }
 
   // Translate static markup in index.html
@@ -173,6 +188,9 @@
     document.title = t('siteTitle');
     document.querySelectorAll('[data-i18n]').forEach(function (el) { el.textContent = t(el.getAttribute('data-i18n')); });
     document.querySelectorAll('[data-i18n-aria]').forEach(function (el) { el.setAttribute('aria-label', t(el.getAttribute('data-i18n-aria'))); });
+    document.querySelectorAll('.lang-toggle button').forEach(function (b) {
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === state.lang));
+    });
   }
 
   /* ---------- router ---------- */
@@ -252,6 +270,9 @@
     drawStars();
     makeTwinkles();
     hydrateArt(document.querySelector('.sky'));
+    document.querySelectorAll('.lang-toggle button').forEach(function (b) {
+      b.addEventListener('click', function () { setLang(b.getAttribute('data-lang')); });
+    });
     var resizeTimer;
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawStars, 150); });
     window.addEventListener('hashchange', function () { render(); window.scrollTo(0, 0); app.focus({ preventScroll: true }); });

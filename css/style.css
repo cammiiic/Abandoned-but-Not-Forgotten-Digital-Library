@@ -110,6 +110,20 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 }
 .footer p { margin: 0; }
 
+/* ---------- language toggle ---------- */
+
+.lang-toggle {
+  display: flex; align-items: center; gap: 2px; margin-left: auto;
+  font-family: var(--font-pixel); font-size: 10px; color: var(--muted);
+  border: 3px solid var(--ink); background: var(--night-2); padding: 2px;
+}
+.lang-toggle button {
+  font: inherit; color: var(--muted); background: transparent; border: 0;
+  padding: 8px 8px; min-width: 36px; min-height: 32px; cursor: pointer;
+}
+.lang-toggle button:hover { color: var(--text); }
+.lang-toggle button[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+
 /* ---------- shared pieces ---------- */
 
 .panel {
