@@ -631,7 +631,10 @@
     seek.style.setProperty('--pct', (dur ? cur / dur * 100 : 0) + '%');
     bar.querySelector('.ab-time').textContent = fmt(cur) + ' / ' + fmt(dur);
     bar.querySelector('.ab-rate').innerHTML = String(ab.rate).replace('.', state.lang === 'es' ? ',' : '.') + '&times;';
-    bar.querySelector('.ab-auto').setAttribute('aria-pressed', String(ab.auto));
+    var auto = bar.querySelector('.ab-auto');
+    auto.setAttribute('aria-pressed', String(ab.auto));
+    auto.innerHTML = '<span class="sw" aria-hidden="true"><span class="sw-knob"></span></span>' +
+      '<span>' + esc(t('abAuto')) + ': ' + esc(t(ab.auto ? 'on' : 'off')) + '</span>';
     var msg = bar.querySelector('.ab-msg');
     msg.textContent = ab.msg; msg.hidden = !ab.msg;
     app.querySelectorAll('.np').forEach(function (el) { el.hidden = !(sounding && +el.getAttribute('data-part') === ab.part); });
@@ -647,7 +650,18 @@
       if (narrator) narrator.defaultPlaybackRate = narrator.playbackRate = ab.rate;
       abUpdate();
     });
-    bar.querySelector('.ab-auto').addEventListener('click', function () { ab.auto = !ab.auto; abUpdate(); });
+    var tipTimer = 0;
+    bar.querySelector('.ab-auto').addEventListener('click', function () {
+      ab.auto = !ab.auto;
+      // say what the switch does, then clear the message
+      ab.msg = t(ab.auto ? 'abAutoOnTip' : 'abAutoOffTip');
+      clearTimeout(tipTimer);
+      tipTimer = setTimeout(function () { if (ab.msg === t('abAutoOnTip') || ab.msg === t('abAutoOffTip')) { ab.msg = ''; abUpdate(); } }, 3500);
+      // a part finished while it was off: carry on to the next one now
+      var bk = getBook(reader.id);
+      if (ab.auto && !ab.playing && narrator && narrator.ended && ab.part >= 0 && ab.part < bk.pages.length - 1) playPart(ab.part + 1);
+      abUpdate();
+    });
     bar.querySelector('.ab-seek').addEventListener('input', function (e) {
       if (narrator && narrator.duration) narrator.currentTime = e.target.value / 1000 * narrator.duration;
     });

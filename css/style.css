@@ -662,7 +662,13 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   background: var(--night-2); border: 3px solid var(--ink); cursor: pointer;
 }
 .ab-btn:hover { color: var(--gold); }
+.ab-auto { gap: 8px; white-space: nowrap; }
 .ab-auto[aria-pressed="true"] { background: var(--gold); color: var(--ink); }
+/* pixel on/off switch */
+.sw { position: relative; width: 26px; height: 14px; background: var(--ink); border: 2px solid var(--ink); flex: none; }
+.sw-knob { position: absolute; top: 0; left: 0; width: 10px; height: 10px; background: var(--muted); transition: left .15s steps(3); }
+.ab-auto[aria-pressed="true"] .sw { background: var(--ok); }
+.ab-auto[aria-pressed="true"] .sw-knob { left: 12px; background: #fff; }
 .ab-msg { grid-column: 1 / -1; margin: 0; font-size: 19px; color: var(--gold); }
 
 /* "now playing" equalizer on the page being read */
@@ -675,9 +681,13 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 
 .cover-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; }
 
+@media (max-width: 980px) {
+  .ab { grid-template-columns: auto 1fr; }
+  .ab-btns { grid-column: 1 / -1; justify-content: flex-end; }
+}
 @media (max-width: 640px) {
-  .ab { grid-template-columns: auto 1fr; top: 4px; }
-  .ab-btns { grid-column: 1 / -1; justify-content: space-between; }
+  .ab { top: 4px; }
+  .ab-btns { justify-content: space-between; }
   .ab-play-label { display: none; }
   .ab-play { padding: 10px; }
 }
