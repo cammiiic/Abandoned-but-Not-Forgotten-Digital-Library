@@ -591,7 +591,98 @@
           '7777777777111111'
         ]
       },
-      quiz: placeholderQuiz('GRAIL')
+      quiz: [
+        {
+          q: { en: 'Who gave the twins their names?', es: '¿Quién les puso nombre a las gemelas?' },
+          answers: [
+            { en: 'A class of fourth-graders in Montana', es: 'Una clase de cuarto grado en Montana' },
+            { en: 'A class of fourth-graders in Florida', es: 'Una clase de cuarto grado en Florida' },
+            { en: 'Sally Ride', es: 'Sally Ride' },
+            { en: 'Middle school students across the country', es: 'Estudiantes de secundaria de todo el país' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What was the twins\' main job?', es: '¿Cuál era el objetivo principal de las gemelas?' },
+          answers: [
+            { en: 'To study the Moon\'s gravity', es: 'Estudiar la gravedad de la Luna' },
+            { en: 'To take pictures of the Moon for students', es: 'Tomar fotografías de la Luna para estudiantes' },
+            { en: 'To study the ocean tides', es: 'Estudiar las mareas oceánicas' },
+            { en: 'To look for signs of life on the Moon', es: 'Buscar señales de vida en la Luna' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What was the name of the cameras the twins carried?', es: '¿Cómo se llamaban las cámaras que llevaban las gemelas?' },
+          answers: [
+            { en: 'MoonKAM', es: 'MoonKAM' },
+            { en: 'MoonCAM', es: 'MoonCAM' },
+            { en: 'TwinKAM', es: 'TwinKAM' },
+            { en: 'LunaKAM', es: 'LunaKAM' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the twins crash into the Moon?', es: '¿Cuándo se estrellaron las gemelas contra la Luna?' },
+          answers: [
+            { en: 'December 17, 2012', es: '17 de diciembre de 2012' },
+            { en: 'December 31, 2011', es: '31 de diciembre de 2011' },
+            { en: 'December 17, 2011', es: '17 de diciembre de 2011' },
+            { en: 'September 10, 2012', es: '10 de septiembre de 2012' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'Who is the crash site named after?', es: '¿En honor a quién se nombró el lugar del impacto?' },
+          answers: [
+            { en: 'Sally Ride', es: 'Sally Ride' },
+            { en: 'The fourth-graders from Montana', es: 'Los estudiantes de cuarto grado de Montana' },
+            { en: 'Ebb and Flow, like the ocean tides', es: 'Ebb y Flow, como las mareas oceánicas' },
+            { en: 'Neil Armstrong', es: 'Neil Armstrong' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'Why did the twins take the slow way to the Moon?', es: '¿Por qué las gemelas tomaron una ruta más lenta hacia la Luna?' },
+          answers: [
+            { en: 'To save fuel', es: 'Para ahorrar combustible' },
+            { en: 'To wait for each other', es: 'Para esperarse la una a la otra' },
+            { en: 'To take more pictures with MoonKAM', es: 'Para tomar más fotografías con MoonKAM' },
+            { en: 'Because their rocket was too small', es: 'Porque su cohete era demasiado pequeño' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the first twin, Ebb, arrive at the Moon?', es: '¿Cuándo llegó a la Luna la primera gemela, Ebb?' },
+          answers: [
+            { en: 'On New Year\'s Eve 2011', es: 'En la víspera de Año Nuevo de 2011' },
+            { en: 'On New Year\'s Day 2012', es: 'El día de Año Nuevo de 2012' },
+            { en: 'Three days after launch', es: 'Tres días después del lanzamiento' },
+            { en: 'On September 10, 2011', es: 'El 10 de septiembre de 2011' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'Why did the twins have to crash?', es: '¿Por qué tuvieron que estrellarse las gemelas?' },
+          answers: [
+            { en: 'They were running out of fuel', es: 'Se les estaba agotando el combustible' },
+            { en: 'Someone on Earth sent the wrong command by accident', es: 'Alguien en la Tierra envió un comando incorrecto por error' },
+            { en: 'A dust storm blocked the Sun', es: 'Una tormenta de polvo ocultó el Sol' },
+            { en: 'A very big asteroid hit them', es: 'Un asteroide de gran tamaño las golpeó' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How did the twins line up once they were together?', es: '¿Cómo se colocaron las gemelas una vez reunidas?' },
+          answers: [
+            { en: 'One behind the other, like two cars on a raceway', es: 'Una detrás de la otra, como dos coches en una pista de carreras' },
+            { en: 'Side by side, like two ocean tides', es: 'Una al lado de la otra, como dos mareas oceánicas' },
+            { en: 'One on top of the other, like Eagle\'s two halves', es: 'Una encima de la otra, como las dos mitades del Eagle' },
+            { en: 'On opposite sides of the Moon', es: 'En lados opuestos de la Luna' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the rocket carrying the twins launch?', es: '¿Cuándo despegó el cohete que llevaba a las gemelas?' },
+          answers: [
+            { en: 'September 10, 2011', es: '10 de septiembre de 2011' },
+            { en: 'December 17, 2012', es: '17 de diciembre de 2012' },
+            { en: 'September 10, 2012', es: '10 de septiembre de 2012' },
+            { en: 'December 31, 2011', es: '31 de diciembre de 2011' }
+          ], correct: 0
+        }
+      ]
     },
 
     {
