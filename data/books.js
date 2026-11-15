@@ -418,7 +418,7 @@
         { date: { en: 'Sep 10, 2011', es: '10 sep 2011' }, text: { en: 'The twins launch together from Florida.', es: 'Las gemelas despegan juntas desde Florida.' } },
         { date: { en: 'Dec 31, 2011', es: '31 dic 2011' }, text: { en: 'Ebb reaches the Moon first, on New Year\'s Eve.', es: 'Ebb llega primero a la Luna, en la víspera de Año Nuevo.' } },
         { date: { en: 'Jan 1, 2012', es: '1 ene 2012' }, text: { en: 'Flow arrives. The twins line up and start orbiting together.', es: 'Llega Flow. Las gemelas se alinean y empiezan a orbitar juntas.' } },
-        { date: { en: '2012', es: '2012' }, text: { en: 'They map the Moon\'s gravity, and students take photos with MoonKAM.', es: 'Mapean la gravedad de la Luna y los estudiantes toman fotos con MoonKAM.' } },
+        { date: { en: 'Mar–Dec 2012', es: 'mar–dic 2012' }, text: { en: 'They map the Moon\'s gravity, and students take photos with MoonKAM.', es: 'Mapean la gravedad de la Luna y los estudiantes toman fotos con MoonKAM.' } },
         { date: { en: 'Jul 2012', es: 'jul 2012' }, text: { en: 'Sally Ride, who ran MoonKAM, passes away.', es: 'Fallece Sally Ride, quien dirigía MoonKAM.' } },
         { date: { en: 'Dec 17, 2012', es: '17 dic 2012' }, text: { en: 'Out of fuel, Ebb and then Flow hit a mountain near the north pole.', es: 'Sin combustible, Ebb y luego Flow impactan una montaña cerca del polo norte.' } },
         { date: { en: 'Today', es: 'Hoy' }, text: { en: 'They rest at the Sally K. Ride Impact Site.', es: 'Descansan en el sitio de impacto Sally K. Ride.' } }
@@ -525,8 +525,8 @@
         { date: { en: 'Jun 1976', es: 'jun 1976' }, text: { en: 'Reaches Mars. The first landing spot looks too rough.', es: 'Llega a Marte. El primer lugar de aterrizaje parece demasiado accidentado.' } },
         { date: { en: 'Jul 20, 1976', es: '20 jul 1976' }, text: { en: 'Lands on Chryse Planitia: the first American spacecraft on Mars.', es: 'Aterriza en Chryse Planitia: la primera nave estadounidense en Marte.' } },
         { date: { en: 'Jul 1976', es: 'jul 1976' }, text: { en: 'Scoops up Martian soil to look for signs of life.', es: 'Recoge suelo marciano para buscar señales de vida.' } },
-        { date: { en: '1980', es: '1980' }, text: { en: 'The orbiter runs out of fuel after 1,489 orbits.', es: 'El orbitador se queda sin combustible tras 1489 órbitas.' } },
-        { date: { en: '1982', es: '1982' }, text: { en: 'The lander is renamed the Thomas Mutch Memorial Station.', es: 'El módulo es rebautizado como Estación Conmemorativa Thomas Mutch.' } },
+        { date: { en: 'Aug 17, 1980', es: '17 ago 1980' }, text: { en: 'Low on the gas it uses to steer, the orbiter is shut down after 1,485 orbits.', es: 'Casi sin el gas que usa para orientarse, el orbitador se apaga tras 1485 órbitas.' } },
+        { date: { en: 'Jan 1981', es: 'ene 1981' }, text: { en: 'The lander is renamed the Thomas Mutch Memorial Station.', es: 'El módulo es rebautizado como Estación Conmemorativa Thomas Mutch.' } },
         { date: { en: 'Nov 11, 1982', es: '11 nov 1982' }, text: { en: 'A wrong command is sent by mistake. The lander goes silent.', es: 'Se envía un comando equivocado por error. El módulo enmudece.' } },
         { date: { en: 'Today', es: 'Hoy' }, text: { en: 'Still sitting on the Golden Plain, waiting.', es: 'Sigue en la Llanura Dorada, a la espera.' } }
       ],
