@@ -392,96 +392,97 @@
           '7777777777777777'
         ]
       },
-      // answers[0] is the correct one; the site shuffles them on screen
+      // answers[0] is the correct one (in the book's own words); the site shuffles them on screen.
+      // Wrong answers reuse other details from the story on purpose, to make students think.
       quiz: [
         {
-          q: { en: 'After how many days of traveling did the spacecraft reach the Moon?', es: '¿Después de cuántos días de viaje llegó la nave a la Luna?' },
+          q: { en: 'After how many days of traveling did the spacecraft reach the Moon?', es: '¿Después de cuántos días de viaje llegó la nave espacial a la Luna?' },
           answers: [
             { en: 'Three days', es: 'Tres días' },
-            { en: 'One day', es: 'Un día' },
-            { en: 'One week', es: 'Una semana' },
-            { en: 'Three weeks', es: 'Tres semanas' }
+            { en: 'About 12 minutes', es: 'Unos 12 minutos' },
+            { en: 'Almost an entire day', es: 'Casi un día entero' },
+            { en: 'Two and a half hours', es: 'Dos horas y media' }
           ], correct: 0
         },
         {
           q: { en: 'What was the name of the area where Armstrong and Aldrin landed?', es: '¿Cómo se llamaba la zona donde aterrizaron Armstrong y Aldrin?' },
           answers: [
             { en: 'The Sea of Tranquility', es: 'El Mar de la Tranquilidad' },
-            { en: 'The Ocean of Storms', es: 'El Océano de las Tormentas' },
-            { en: 'The Sea of Crises', es: 'El Mar de las Crisis' },
-            { en: 'The Golden Plain', es: 'La Llanura Dorada' }
+            { en: 'Eagle crater', es: 'El cráter Eagle' },
+            { en: 'The Sea of Serenity', es: 'El Mar de la Serenidad' },
+            { en: 'The Ocean of Storms', es: 'El Océano de las Tormentas' }
           ], correct: 0
         },
         {
-          q: { en: 'How did Aldrin describe the empty landscape?', es: '¿Cómo describió Aldrin el paisaje vacío?' },
+          q: { en: 'How did Aldrin describe the empty landscape?', es: '¿Cómo describió Aldrin el paisaje desolado?' },
           answers: [
             { en: '"Magnificent desolation"', es: '«Magnífica desolación»' },
-            { en: '"A silent wonderland"', es: '«Un país de las maravillas silencioso»' },
-            { en: '"A gray, endless desert"', es: '«Un desierto gris e infinito»' },
-            { en: '"The loneliest place in the universe"', es: '«El lugar más solitario del universo»' }
+            { en: '"Magnificent destination"', es: '«Magnífico destino»' },
+            { en: '"Peaceful desolation"', es: '«Pacífica desolación»' },
+            { en: '"Beautiful isolation"', es: '«Hermoso aislamiento»' }
           ], correct: 0
         },
         {
           q: { en: 'When did the science station stop answering?', es: '¿Cuándo dejó de responder la estación científica?' },
           answers: [
             { en: 'August 27, 1969', es: '27 de agosto de 1969' },
-            { en: 'July 21, 1969', es: '21 de julio de 1969' },
-            { en: 'December 31, 1969', es: '31 de diciembre de 1969' },
-            { en: 'July 20, 1970', es: '20 de julio de 1970' }
+            { en: 'July 20, 1969', es: '20 de julio de 1969' },
+            { en: 'July 16, 1969', es: '16 de julio de 1969' },
+            { en: 'August 20, 1969', es: '20 de agosto de 1969' }
           ], correct: 0
         },
         {
-          q: { en: 'What did Armstrong say after stepping onto the Moon?', es: '¿Qué dijo Armstrong al pisar la Luna?' },
+          q: { en: 'What did Armstrong say when he stepped onto the Moon?', es: '¿Qué dijo Armstrong al pisar la Luna?' },
           answers: [
             { en: '"That\'s one small step for man, one giant leap for mankind."', es: '«Es un pequeño paso para el hombre, pero un gran salto para la humanidad».' },
+            { en: '"That\'s one giant step for man, one small leap for mankind."', es: '«Es un gran paso para el hombre, pero un pequeño salto para la humanidad».' },
             { en: '"Houston, Tranquility Base here. The Eagle has landed."', es: '«Houston, aquí Base Tranquilidad. El Eagle ha aterrizado».' },
-            { en: '"We came in peace for all mankind."', es: '«Vinimos en paz en nombre de toda la humanidad».' },
-            { en: '"Magnificent desolation."', es: '«Magnífica desolación».' }
+            { en: '"We came in peace for all mankind."', es: '«Vinimos en paz en nombre de toda la humanidad».' }
           ], correct: 0
         },
         {
-          q: { en: 'When did the Saturn V rocket launch?', es: '¿Cuándo despegó el cohete Saturno V?' },
+          q: { en: 'When did the Saturn V rocket launch from Florida?', es: '¿Cuándo despegó el cohete Saturno V desde Florida?' },
           answers: [
             { en: 'July 16, 1969', es: '16 de julio de 1969' },
             { en: 'July 20, 1969', es: '20 de julio de 1969' },
-            { en: 'July 4, 1969', es: '4 de julio de 1969' },
-            { en: 'August 27, 1969', es: '27 de agosto de 1969' }
+            { en: 'August 27, 1969', es: '27 de agosto de 1969' },
+            { en: 'July 16, 1959', es: '16 de julio de 1959' }
           ], correct: 0
         },
         {
-          q: { en: 'What did the writer compare the size of Eagle\'s cabin (its top half) to?', es: '¿Con qué comparó la escritora el tamaño de la cabina del Eagle (su mitad superior)?' },
+          q: { en: 'What did the writer compare the size of Eagle\'s cabin (the top half) to?', es: '¿Con qué comparó la escritora el tamaño de la cabina del Eagle (la parte superior)?' },
           answers: [
             { en: 'A small closet for two people', es: 'Un armario pequeño para dos personas' },
-            { en: 'A school bus', es: 'Un autobús escolar' },
-            { en: 'A two-car garage', es: 'Un garaje para dos coches' },
-            { en: 'A shoebox', es: 'Una caja de zapatos' }
+            { en: 'An insect', es: 'Un insecto' },
+            { en: 'A launch pad', es: 'Una plataforma de lanzamiento' },
+            { en: 'A sheet of foil', es: 'Una hoja de papel de aluminio' }
           ], correct: 0
         },
         {
-          q: { en: 'What did NASA believe happened to Eagle after it was released?', es: '¿Qué creía la NASA que le pasó al Eagle después de soltarlo?' },
+          q: { en: 'What did NASA believe happened to Eagle after it was left in orbit?', es: '¿Qué creía la NASA que le ocurrió al Eagle después de dejarlo en órbita?' },
           answers: [
-            { en: 'It slowly lost height and crashed somewhere on the Moon', es: 'Fue perdiendo altura poco a poco y se estrelló en algún lugar de la Luna' },
-            { en: 'It flew back to Earth on its own', es: 'Regresó solo a la Tierra' },
-            { en: 'It landed safely next to its bottom half', es: 'Aterrizó sano y salvo junto a su mitad inferior' },
-            { en: 'It drifted away toward Mars', es: 'Se fue flotando hacia Marte' }
+            { en: 'It slowly lost height and crashed somewhere on the Moon after a few months', es: 'Fue perdiendo altura poco a poco hasta estrellarse en algún lugar de la Luna al cabo de unos meses' },
+            { en: 'It could still be orbiting the Moon today', es: 'Podría seguir orbitando la Luna hoy en día' },
+            { en: 'It reconnected with Columbia and flew back to Earth', es: 'Se reencontró con el Columbia y regresó a la Tierra' },
+            { en: 'It landed next to its bottom half at Tranquility Base', es: 'Aterrizó junto a su mitad inferior en la Base Tranquilidad' }
           ], correct: 0
         },
         {
-          q: { en: 'What did the plaque on one of Eagle\'s legs say?', es: '¿Qué decía la placa en una de las patas del Eagle?' },
+          q: { en: 'What did the plaque on one of Eagle\'s legs say?', es: '¿Qué decía la placa que había en una de las patas del Eagle?' },
           answers: [
             { en: '"We came in peace for all mankind."', es: '«Vinimos en paz en nombre de toda la humanidad».' },
-            { en: '"Property of NASA. Do not touch."', es: '«Propiedad de la NASA. No tocar».' },
-            { en: '"To the Moon and back."', es: '«A la Luna y de regreso».' },
-            { en: '"Built in Florida, 1969."', es: '«Construido en Florida, 1969».' }
+            { en: '"We came in peace for planet Earth."', es: '«Vinimos en paz en nombre del planeta Tierra».' },
+            { en: '"That\'s one small step for man, one giant leap for mankind."', es: '«Es un pequeño paso para el hombre, pero un gran salto para la humanidad».' },
+            { en: '"Houston, Tranquility Base here."', es: '«Houston, aquí Base Tranquilidad».' }
           ], correct: 0
         },
         {
-          q: { en: 'What did Armstrong and Aldrin leave on the Moon\'s ground before going back inside Eagle?', es: '¿Qué dejaron Armstrong y Aldrin en el suelo lunar antes de volver a entrar al Eagle?' },
+          q: { en: 'What did Armstrong and Aldrin leave on the ground before going back inside Eagle?', es: '¿Qué dejaron Armstrong y Aldrin en el suelo antes de regresar al interior del Eagle?' },
           answers: [
             { en: 'A packet of memorial items', es: 'Un paquete con objetos conmemorativos' },
-            { en: 'Their space suits', es: 'Sus trajes espaciales' },
-            { en: 'A time capsule with letters from students', es: 'Una cápsula del tiempo con cartas de estudiantes' },
-            { en: 'A spare engine for Columbia', es: 'Un motor de repuesto para el Columbia' }
+            { en: '22 kilograms of Moon rocks and soil', es: '22 kilogramos de rocas y suelo lunar' },
+            { en: 'The phone they used to talk with President Nixon', es: 'El teléfono con el que hablaron con el presidente Nixon' },
+            { en: 'Their seats from the cabin', es: 'Los asientos de la cabina' }
           ], correct: 0
         }
       ]
