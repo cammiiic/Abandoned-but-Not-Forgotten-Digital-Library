@@ -392,7 +392,99 @@
           '7777777777777777'
         ]
       },
-      quiz: placeholderQuiz('Apollo 11')
+      // answers[0] is the correct one; the site shuffles them on screen
+      quiz: [
+        {
+          q: { en: 'After how many days of traveling did the spacecraft reach the Moon?', es: '¿Después de cuántos días de viaje llegó la nave a la Luna?' },
+          answers: [
+            { en: 'Three days', es: 'Tres días' },
+            { en: 'One day', es: 'Un día' },
+            { en: 'One week', es: 'Una semana' },
+            { en: 'Three weeks', es: 'Tres semanas' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What was the name of the area where Armstrong and Aldrin landed?', es: '¿Cómo se llamaba la zona donde aterrizaron Armstrong y Aldrin?' },
+          answers: [
+            { en: 'The Sea of Tranquility', es: 'El Mar de la Tranquilidad' },
+            { en: 'The Ocean of Storms', es: 'El Océano de las Tormentas' },
+            { en: 'The Sea of Crises', es: 'El Mar de las Crisis' },
+            { en: 'The Golden Plain', es: 'La Llanura Dorada' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How did Aldrin describe the empty landscape?', es: '¿Cómo describió Aldrin el paisaje vacío?' },
+          answers: [
+            { en: '"Magnificent desolation"', es: '«Magnífica desolación»' },
+            { en: '"A silent wonderland"', es: '«Un país de las maravillas silencioso»' },
+            { en: '"A gray, endless desert"', es: '«Un desierto gris e infinito»' },
+            { en: '"The loneliest place in the universe"', es: '«El lugar más solitario del universo»' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the science station stop answering?', es: '¿Cuándo dejó de responder la estación científica?' },
+          answers: [
+            { en: 'August 27, 1969', es: '27 de agosto de 1969' },
+            { en: 'July 21, 1969', es: '21 de julio de 1969' },
+            { en: 'December 31, 1969', es: '31 de diciembre de 1969' },
+            { en: 'July 20, 1970', es: '20 de julio de 1970' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What did Armstrong say after stepping onto the Moon?', es: '¿Qué dijo Armstrong al pisar la Luna?' },
+          answers: [
+            { en: '"That\'s one small step for man, one giant leap for mankind."', es: '«Es un pequeño paso para el hombre, pero un gran salto para la humanidad».' },
+            { en: '"Houston, Tranquility Base here. The Eagle has landed."', es: '«Houston, aquí Base Tranquilidad. El Eagle ha aterrizado».' },
+            { en: '"We came in peace for all mankind."', es: '«Vinimos en paz en nombre de toda la humanidad».' },
+            { en: '"Magnificent desolation."', es: '«Magnífica desolación».' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the Saturn V rocket launch?', es: '¿Cuándo despegó el cohete Saturno V?' },
+          answers: [
+            { en: 'July 16, 1969', es: '16 de julio de 1969' },
+            { en: 'July 20, 1969', es: '20 de julio de 1969' },
+            { en: 'July 4, 1969', es: '4 de julio de 1969' },
+            { en: 'August 27, 1969', es: '27 de agosto de 1969' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What did the writer compare the size of Eagle\'s cabin (its top half) to?', es: '¿Con qué comparó la escritora el tamaño de la cabina del Eagle (su mitad superior)?' },
+          answers: [
+            { en: 'A small closet for two people', es: 'Un armario pequeño para dos personas' },
+            { en: 'A school bus', es: 'Un autobús escolar' },
+            { en: 'A two-car garage', es: 'Un garaje para dos coches' },
+            { en: 'A shoebox', es: 'Una caja de zapatos' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What did NASA believe happened to Eagle after it was released?', es: '¿Qué creía la NASA que le pasó al Eagle después de soltarlo?' },
+          answers: [
+            { en: 'It slowly lost height and crashed somewhere on the Moon', es: 'Fue perdiendo altura poco a poco y se estrelló en algún lugar de la Luna' },
+            { en: 'It flew back to Earth on its own', es: 'Regresó solo a la Tierra' },
+            { en: 'It landed safely next to its bottom half', es: 'Aterrizó sano y salvo junto a su mitad inferior' },
+            { en: 'It drifted away toward Mars', es: 'Se fue flotando hacia Marte' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What did the plaque on one of Eagle\'s legs say?', es: '¿Qué decía la placa en una de las patas del Eagle?' },
+          answers: [
+            { en: '"We came in peace for all mankind."', es: '«Vinimos en paz en nombre de toda la humanidad».' },
+            { en: '"Property of NASA. Do not touch."', es: '«Propiedad de la NASA. No tocar».' },
+            { en: '"To the Moon and back."', es: '«A la Luna y de regreso».' },
+            { en: '"Built in Florida, 1969."', es: '«Construido en Florida, 1969».' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What did Armstrong and Aldrin leave on the Moon\'s ground before going back inside Eagle?', es: '¿Qué dejaron Armstrong y Aldrin en el suelo lunar antes de volver a entrar al Eagle?' },
+          answers: [
+            { en: 'A packet of memorial items', es: 'Un paquete con objetos conmemorativos' },
+            { en: 'Their space suits', es: 'Sus trajes espaciales' },
+            { en: 'A time capsule with letters from students', es: 'Una cápsula del tiempo con cartas de estudiantes' },
+            { en: 'A spare engine for Columbia', es: 'Un motor de repuesto para el Columbia' }
+          ], correct: 0
+        }
+      ]
     },
 
     {
