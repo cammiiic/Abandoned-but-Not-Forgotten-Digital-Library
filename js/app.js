@@ -11,6 +11,11 @@
   var app = document.getElementById('app');
   var VIEWS = {};
   var REDUCED = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Recording mode (open the site with ?record, e.g. .../?record#/home): a lighter
+  // page for screen recording on slower laptops. No scanlines, sky effects on
+  // their own layers, sprites stop blinking, no ambient sound. Looks the same.
+  var RECORD = /[?&]record\b/.test(location.search);
+  if (RECORD) document.documentElement.classList.add('rec-mode');
 
   var state = { lang: 'en' };
 
@@ -110,7 +115,7 @@
 
   // idle animation: blinking beacons, twinkling stars, the GRAIL link
   function startAnimation() {
-    if (REDUCED || !SPRITES) return;
+    if (REDUCED || !SPRITES || RECORD) return;
     setInterval(function () {
       if (document.hidden) return;
       frame = (frame + 1) % SPRITES.FRAMES;
@@ -1993,7 +1998,7 @@
   function initAmbient() {
     try { amb.enabled = localStorage.getItem(SOUND_KEY) !== 'off'; } catch (e) { /* keep default */ }
     var btn = document.querySelector('.sound-toggle');
-    if (!(window.AudioContext || window.webkitAudioContext)) { if (btn) btn.hidden = true; return; }
+    if (RECORD || !(window.AudioContext || window.webkitAudioContext)) { if (btn) btn.hidden = true; return; }
     soundButton();
 
     // the first tap or key press unlocks sound (the context must be made inside it)
