@@ -112,6 +112,84 @@ h1, h2, h3 { font-family: var(--font-pixel); font-weight: 400; line-height: 1.4;
 .rec-mode .meteors span { will-change: transform, opacity; }
 .rec-mode .topbar, .rec-mode .footer { will-change: transform; }
 
+/* ---------- intro: the first step on the Moon (a short full-screen film) ---------- */
+
+.moon-intro {
+  position: fixed; inset: 0; z-index: 100; overflow: hidden; background: #000;
+  opacity: 0; transition: opacity .8s;
+}
+.moon-intro.on { opacity: 1; }
+.moon-intro.out { opacity: 0; transition: opacity .9s; }
+body.moon-intro-open { overflow: hidden; }
+
+/* the picture fills the screen; a fade from black when the film starts */
+.mi-scene { position: absolute; inset: 0; width: 100%; height: 100%; display: block; transition: opacity 2.4s ease, filter 2.4s ease; }
+.moon-intro.title .mi-scene { opacity: .5; filter: saturate(.7); }
+.moon-intro.dark .mi-scene { opacity: 0; transition-duration: 1.5s; }
+
+/* soft dark edges, like a lens */
+.moon-intro::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%);
+}
+
+/* film bars slide in from the top and bottom */
+.mi-bar {
+  position: absolute; left: 0; right: 0; z-index: 2; height: 0; background: #000;
+  display: flex; align-items: center; justify-content: center;
+  transition: height 1.6s cubic-bezier(.65, 0, .35, 1);
+}
+.mi-bar-top { top: 0; }
+.mi-bar-bottom { bottom: 0; }
+.moon-intro.cinema .mi-bar { height: clamp(44px, 11vh, 120px); }
+
+/* date and place, quietly, in the bottom bar */
+.mi-cap {
+  margin: 0; padding: 0 16px; text-align: center; opacity: 0; transition: opacity 1.6s;
+  font-family: var(--font-pixel); font-size: clamp(8px, 1.6vw, 12px); line-height: 1.8;
+  letter-spacing: .12em; text-transform: uppercase; color: var(--muted);
+}
+.mi-cap.show { opacity: 1; }
+
+/* Armstrong's words, one line at a time */
+.mi-quote {
+  position: absolute; left: 8%; right: 8%; top: 50%; transform: translateY(-60%); z-index: 3;
+  margin: 0; text-align: center; pointer-events: none;
+}
+.mi-quote p { margin: 0 0 22px; }
+.mi-quote span, .mi-who {
+  display: block; opacity: 0; transform: translateY(6px);
+  transition: opacity 2.2s ease, transform 2.2s ease;
+}
+.mi-quote span.show, .mi-who.show { opacity: 1; transform: none; }
+.mi-quote span {
+  font-family: var(--font-pixel); font-size: clamp(12px, 2.6vw, 24px); line-height: 1.9;
+  color: #fff; text-shadow: 3px 3px 0 #000;
+}
+.mi-who { font-size: clamp(20px, 2.8vw, 28px); color: var(--gold); text-shadow: 2px 2px 0 #000; letter-spacing: .04em; }
+
+/* the title screen: a quiet hint and a blinking "Press start" in the lower third */
+.mi-start-wrap {
+  position: absolute; left: 0; right: 0; bottom: 20%; z-index: 3; text-align: center;
+  transition: opacity .8s;
+}
+.moon-intro:not(.title) .mi-start-wrap { opacity: 0; pointer-events: none; }
+.mi-hint {
+  margin: 0 0 18px; font-size: clamp(18px, 2.2vw, 22px); color: var(--muted); letter-spacing: .06em;
+}
+.mi-start {
+  font-family: var(--font-pixel); font-size: clamp(13px, 2.4vw, 20px); letter-spacing: .1em;
+  color: var(--gold); text-shadow: 3px 3px 0 #000; background: none; border: 0; padding: 12px 18px; cursor: pointer;
+  animation: mi-blink 1.4s steps(1) infinite;
+}
+.mi-start:hover, .mi-start:focus-visible { color: #fff; animation: none; }
+.mi-start:focus-visible { outline: 3px dashed var(--gold); outline-offset: 4px; }
+@keyframes mi-blink { 50% { opacity: .25; } }
+
+.mi-skip { position: absolute; top: 12px; right: 16px; z-index: 4; }
+.moon-intro.cinema .mi-skip { opacity: .55; }
+.moon-intro.cinema .mi-skip:hover, .moon-intro.cinema .mi-skip:focus-visible { opacity: 1; }
+
 /* ---------- layout ---------- */
 
 .topbar, main, .footer { position: relative; z-index: 1; }

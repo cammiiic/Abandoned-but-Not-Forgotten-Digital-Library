@@ -26,7 +26,8 @@
     k0: '#f4d6b0', k1: '#e2b588', k2: '#c99068', k3: '#a06a4e',
     b0: '#a8d6ff', b1: '#4f8fe8', b2: '#2c58b2', b3: '#183372', b4: '#0d1c44',
     e0: '#8cc4ff', e1: '#3d7be0', e2: '#1f4aa0', eg: '#58b865', eg2: '#2f7a3c',
-    red: '#ff4a3d', red2: '#9c1c14', cyan: '#8ff6ff', cyan2: '#3fb7d6'
+    red: '#ff4a3d', red2: '#9c1c14', cyan: '#8ff6ff', cyan2: '#3fb7d6',
+    fr: '#b22234', fb: '#3c3b6e'                    // US flag: official "Old Glory" red and blue
   };
 
   /* ---------- tiny raster engine ---------- */
@@ -146,6 +147,7 @@
   /* "Today" variant: set while a sprite is being drawn as it looks now,
      abandoned (dimmer, dusty, tilted, missing parts).                     */
   var TODAY = false;
+  var NOFLAG = false;   // 'noflag' variant: Eagle without its flag (for the intro)
 
   function mixHex(a, b, t) {
     var x = rgb(a), y = rgb(b), o = '#';
@@ -315,6 +317,29 @@
     s.poly([[x0 + 1, y0], [x0 + 2, y0], [x1 + 2, y1 + 1], [x1 + 1, y1 + 1]], dark);
   }
 
+  /* US flag, drawn pixel by pixel in real pixels so it stays crisp at any size.
+     Red and white stripes (red at top and bottom), a blue canton over the top
+     stripes next to the pole, with staggered white stars. At 7 px tall the 13
+     stripes become 7, the usual way to draw it in pixel art. About 1.7 : 1,
+     close to the real 1.9 : 1. Also used by the intro animation.            */
+  function usFlag(s, x0, y0) {
+    var k = s.k, X = Math.round(x0 * k), Y = Math.round(y0 * k);
+    var W = Math.min(s.W - X, Math.round(8 * k)), H = 7;
+    var cw = Math.round(W * 0.42), ch = 4;
+    for (var y = 0; y < H; y++) {
+      for (var x = 0; x < W; x++) {
+        var c;
+        if (x < cw && y < ch) {
+          var star = y % 2 === 0 ? x % 2 === 1 : (x % 2 === 0 && x > 0 && x < cw - 1);
+          c = star ? P.s0 : P.fb;
+        } else {
+          c = y % 2 ? P.s0 : P.fr;
+        }
+        s.put(X + x, Y + y, c);
+      }
+    }
+  }
+
   /* ---------- Apollo 11: Eagle at Tranquility Base ---------- */
 
   function eagle(f, k) {
@@ -390,11 +415,13 @@
       fg.rect(q[0] - 1, q[1], 3, 1, P.s3); fg.rect(q[0], q[1] - 1, 1, 3, P.s3); fg.set(q[0], q[1], P.s1);
     });
 
-    // flag with its horizontal top bar (no wind on the Moon)
-    fg.rect(55, 36, 1, 15, P.s1);
-    fg.rect(55, 36, 8, 1, P.s1);
-    fg.rect(56, 37, 7, 5, function (x, y) { return y % 2 ? P.s0 : P.red; });
-    fg.rect(56, 37, 3, 3, P.b2); fg.set(57, 38, P.s0);
+    // flag with its horizontal top bar (no wind on the Moon);
+    // the intro animation plants it itself, so its variant leaves it out
+    if (!NOFLAG) {
+      fg.rect(55, 36, 1, 15, P.s1);
+      fg.rect(55, 36, 9, 1, P.s1);
+      usFlag(fg, 56, 37);
+    }
 
     fg.outline(P.ink);
 
@@ -672,13 +699,16 @@
   } catch (e) { /* ignore */ }
   var K = RES / 64;
 
-  // variant: '' (on its mission) or 'today' (as it is now, abandoned)
-  function frameCanvas(id, frame, variant) {
-    var key = id + '#' + frame + '#' + (variant || '');
+  // variant: '' (on its mission), 'today' (as it is now, abandoned) or
+  // 'noflag' (Eagle without its flag); res: optional size in pixels
+  function frameCanvas(id, frame, variant, res) {
+    var k = /^(orb|map):/.test(id) ? 1 : res ? res / 64 : K;
+    var key = id + '#' + frame + '#' + (variant || '') + '#' + k;
     if (!cache[key]) {
       TODAY = variant === 'today';
-      try { cache[key] = MAKERS[id](frame, /^(orb|map):/.test(id) ? 1 : K).toCanvas(); }
-      finally { TODAY = false; }
+      NOFLAG = variant === 'noflag';
+      try { cache[key] = MAKERS[id](frame, k).toCanvas(); }
+      finally { TODAY = false; NOFLAG = false; }
     }
     return cache[key];
   }
@@ -690,6 +720,38 @@
   window.ABNF_SPRITES = {
     FRAMES: FRAMES,
     RES: RES,
+    P: P,
+    // the US flag drawn straight onto a 2D context, one cell per real pixel
+    // (same pattern as usFlag); cols limits how much is unrolled, for the intro
+    // Sky and Moon ground for a full-screen scene (the intro), W x H real
+    // pixels, drawn at the 128 px scale (k = 2) so it continues a 128 px Eagle
+    // whose top edge is at y = top: same gradients, dithering, stars, craters.
+    backdrop: function (W, H, top, seed) {
+      var k = 2, s = new S(Math.ceil(W / k), Math.ceil(H / k), k), tu = top / k, gu = tu + 50;
+      var r = rng(seed);
+      s.rect(0, 0, s.w, tu, P.sp0);
+      s.rect(0, tu, s.w, 50, function (x, y) { return grad([P.sp0, P.sp1, P.sp2, P.sp3], (y - tu) / 50); });
+      stars(s, 0, gu - 3, seed, 0.03, 0);
+      s.rect(0, gu, s.w, s.h - gu, function (x, y) { return grad([P.m0, P.m1, P.m1, P.m2], (y - gu) / 14); });
+      for (var i = 0; i < s.w * 1.4; i++) s.set(Math.floor(r() * s.w), gu + 1 + Math.floor(r() * (s.h - gu - 1)), r() > 0.45 ? P.m2 : P.m0);
+      for (var j = 0; j < s.w / 9; j++) {
+        var cy = gu + 3 + r() * (s.h - gu - 4), depth = Math.min(1, (cy - gu) / 14), rx = 2 + depth * 6 * r() + 1.5;
+        crater(s, Math.floor(r() * s.w), cy, rx, Math.max(1, rx * 0.32), [P.m0, P.m1, P.m3, P.m4]);
+      }
+      return s.toCanvas();
+    },
+    // 0..1 threshold of the 4 x 4 dither pattern at real pixel x, y
+    bayer: bayer,
+    // H: number of stripes (odd, so red is at the top and bottom)
+    flag: function (ctx, X, Y, W, cols, H) {
+      H = H || 7;
+      var cw = Math.round(W * 0.42), ch = Math.round(H * 0.54);
+      for (var y = 0; y < H; y++) for (var x = 0; x < Math.min(W, cols == null ? W : cols); x++) {
+        var star = y % 2 === 0 ? x % 2 === 1 : (x % 2 === 0 && x > 0 && x < cw - 1);
+        ctx.fillStyle = x < cw && y < ch ? (star ? P.s0 : P.fb) : (y % 2 ? P.s0 : P.fr);
+        ctx.fillRect(X + x, Y + y, 1, 1);
+      }
+    },
     has: function (id) { return !!MAKERS[id]; },
     // 64 x 64 data for the coloring page: real colors + which pixels are the spacecraft
     coloring: function (id) {
@@ -697,8 +759,8 @@
       var s = MAKERS[id](0, 1);
       return { w: s.W, h: s.H, px: s.p, craft: s.craft, nameOf: function (hex) { return NAME_OF[hex] || null; } };
     },
-    draw: function (canvas, id, frame, variant) {
-      var src = frameCanvas(id, (frame || 0) % FRAMES, variant);
+    draw: function (canvas, id, frame, variant, res) {
+      var src = frameCanvas(id, (frame || 0) % FRAMES, variant, res);
       if (canvas.width !== src.width) { canvas.width = src.width; canvas.height = src.height; }
       var ctx = canvas.getContext('2d');
       ctx.imageSmoothingEnabled = false;

@@ -1955,7 +1955,7 @@
 
   // narration counts as busy while it's loading too, so the two never overlap
   function narrationBusy() { return ab.playing || (narrator && !narrator.paused); }
-  function ambientWanted() { return amb.enabled && amb.unlocked && !document.hidden && !narrationBusy(); }
+  function ambientWanted() { return amb.enabled && amb.unlocked && !document.hidden && !narrationBusy() && !introOn; }
 
   function ambientRefresh() {
     if (!amb.nodes) return;
@@ -2022,6 +2022,395 @@
     document.addEventListener('visibilitychange', ambientRefresh);
   }
 
+  /* ---------- Intro: the first step on the Moon ----------
+     A short full-screen film before the home page, once per visit (add
+     ?intro to the address to see it every time, ?intro=12 to start 12 s in).
+     It opens on a quiet "Press start" screen among the stars: browsers only
+     allow sound after a click. Then black bars slide in like a film, the
+     camera drifts down from the stars to Eagle on the Moon, Armstrong climbs
+     down, pauses, takes the first step, walks out, plants the flag and
+     salutes; the camera rises back to the stars for his words, and the film
+     fades into the home page. Skip button or Esc ends it at any time.
+     Sound is made live with Web Audio, like the ambient sound.
+     The picture is pixel art at the 128 px scale, stretched to fill the
+     screen: the Eagle sprite in the middle, with matching sky and ground
+     (js/sprites.js backdrop) around it for any screen shape.               */
+
+  var INTRO_KEY = 'abnf-intro';
+  var SKY = 150;                   // extra sky above the scene for the camera moves
+  var introOn = false;             // keeps the ambient sound quiet meanwhile
+
+  // the film, in seconds after Start
+  var TL = {
+    revealFrom: 1.5, revealTo: 7.5,      // camera drifts down from the stars
+    capFrom: 6.5, capTo: 12,             // date and place
+    climbFrom: 8.5, climbTo: 13,         // down the ladder
+    stepFrom: 13.8, stepTo: 14.3,        // the first step (lands at stepTo)
+    walkFrom: 15, walkTo: 19,
+    plant: 19.3, unrollFrom: 19.9, unrollTo: 20.9, salute: 21.1,
+    riseFrom: 23.5, riseTo: 28,          // camera rises back to the stars
+    quote1: 26.5, quote2: 28.6, who: 30.6,
+    fadeFrom: 35, end: 36.6
+  };
+
+  function shouldIntro() {
+    // also skipped when the page opens in a background tab (it would play unseen)
+    if (REDUCED || !SPRITES || !SPRITES.backdrop || document.hidden) return false;
+    if (/[?&]intro\b/.test(location.search)) return true;
+    if (parseRoute().name !== 'home') return false;     // a shared link to a book goes straight there
+    try { return !sessionStorage.getItem(INTRO_KEY); } catch (e) { return true; }
+  }
+
+  // astronaut, 7 x 12 px, facing right. W suit, S suit shade, V gold visor,
+  // K backpack / back of the suit, B boots
+  var ASTRO = {
+    stand:  ['..WWW..', '.WWWWS.', '.KWVVVS', '.KWWWWS', 'KKWWWWS', 'KKWWWWW', 'KKWWWWS', '.WWWWS.', '.WW.WS.', '.WW.WS.', '.WS..S.', '.BB.BB.'],
+    walk:   ['..WWW..', '.WWWWS.', '.KWVVVS', '.KWWWWS', 'KKWWWWS', 'KKWWWWW', 'KKWWWWS', '.WWWWS.', '.WWWS..', 'WW..WS.', 'W....WS', 'BB...BB'],
+    climbA: ['..WWW..', '.WWWWW.', '.SWWWS.', 'WKKKKKW', '.KKKKK.', '.KKKKK.', '.WWWWW.', '.WWWWS.', '.WW.WS.', '.WW.WS.', '.WS..S.', '.BB.BB.'],
+    climbB: ['..WWW..', '.WWWWW.', '.SWWWS.', '.KKKKK.', 'WKKKKKW', '.KKKKK.', '.WWWWW.', '.WWWWS.', '.WW.WS.', '.WW.WS.', '.WS..S.', '.BB.BB.'],
+    salute: ['..WWWW.', '.WWWWSW', '.KWVVVW', '.KWWWW.', 'KKWWWS.', 'KKWWWS.', 'KKWWWWS', '.WWWWS.', '.WW.WS.', '.WW.WS.', '.WS..S.', '.BB.BB.']
+  };
+  var ASTRO_C = { W: '#f2f4f8', S: '#aab2c4', V: '#e5a426', K: '#727b92', B: '#41475c' };
+
+  function drawAstro(ctx, cx, feet, pose) {
+    var rows = ASTRO[pose], x0 = Math.round(cx) - 3, y0 = Math.round(feet) - rows.length;
+    // a 1 px dark outline first, like the rest of the pixel art
+    ctx.fillStyle = '#0a0b16';
+    rows.forEach(function (r, y) {
+      for (var x = 0; x < r.length; x++) if (r[x] !== '.') {
+        ctx.fillRect(x0 + x - 1, y0 + y, 3, 1); ctx.fillRect(x0 + x, y0 + y - 1, 1, 3);
+      }
+    });
+    rows.forEach(function (r, y) {
+      for (var x = 0; x < r.length; x++) if (r[x] !== '.') { ctx.fillStyle = ASTRO_C[r[x]]; ctx.fillRect(x0 + x, y0 + y, 1, 1); }
+    });
+  }
+
+  function ease(p) { p = Math.max(0, Math.min(1, p)); return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; }
+  function smooth(p) { p = Math.max(0, Math.min(1, p)); return p * p * (3 - 2 * p); }
+  function span(t, a, b) { return Math.max(0, Math.min(1, (t - a) / (b - a))); }
+
+  // places in the 128 x 128 Eagle scene (pixels)
+  var WALK_X0 = 71, WALK_X1 = 100, WALK_F0 = 108, WALK_F1 = 113, PRINTS = 9;
+  var FLAG_X = 110, FLAG_TOP = 84, FLAG_BASE = 116, FLAG_W = 16, FLAG_H = 9;
+
+  /* ---- sound ---- */
+  function introSounds() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;    // always on otherwise: the visitor chose Start
+    var c = new AC(), out = c.createGain();
+    out.gain.value = 0.9;
+    out.connect(c.destination);
+    var noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate), nd = noiseBuf.getChannelData(0);
+    for (var i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+
+    function env(g, at, vol, attack, dur) {
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(vol, at + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    }
+    function tone(f, at, dur, type, vol, fEnd, dest) {
+      var o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'sine';
+      o.frequency.setValueAtTime(f, at);
+      if (fEnd) o.frequency.exponentialRampToValueAtTime(fEnd, at + dur);
+      env(g, at, vol, 0.005, dur);
+      o.connect(g); g.connect(dest || out);
+      o.start(at); o.stop(at + dur + 0.05);
+    }
+    function noise(at, dur, vol, type, f, fEnd, attack) {
+      var src = c.createBufferSource(), flt = c.createBiquadFilter(), g = c.createGain();
+      src.buffer = noiseBuf;
+      flt.type = type; flt.frequency.setValueAtTime(f, at);
+      if (fEnd) flt.frequency.exponentialRampToValueAtTime(fEnd, at + dur);
+      env(g, at, vol, attack || 0.005, dur);
+      src.connect(flt); flt.connect(g); g.connect(out);
+      src.start(at); src.stop(at + dur + 0.05);
+    }
+    // a held chord that fades in and out (the film's music bed)
+    function pad(freqs, at, to, vol, rise) {
+      freqs.forEach(function (f, n) {
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = f; o.detune.value = n % 2 ? 5 : -5;
+        g.gain.setValueAtTime(0, at);
+        g.gain.linearRampToValueAtTime(vol, at + rise);
+        g.gain.setValueAtTime(vol, Math.max(at + rise, to - 2.5));
+        g.gain.linearRampToValueAtTime(0, to);
+        o.connect(g); g.connect(out); o.start(at); o.stop(to + 0.1);
+      });
+    }
+    var chip = c.createBiquadFilter();       // softens the 8-bit square waves
+    chip.type = 'lowpass'; chip.frequency.value = 3500;
+    chip.connect(out);
+
+    var fx = {
+      // Apollo's "Quindar" radio beep
+      beep: function (at) {
+        var o = c.createOscillator(), g = c.createGain();
+        o.frequency.value = 2525;
+        g.gain.setValueAtTime(0, at); g.gain.linearRampToValueAtTime(0.06, at + 0.01);
+        g.gain.setValueAtTime(0.06, at + 0.23); g.gain.linearRampToValueAtTime(0, at + 0.25);
+        o.connect(g); g.connect(out); o.start(at); o.stop(at + 0.3);
+      },
+      // low, slow music under the reveal; a warm chord under the quote
+      opening: function (at) { pad([55, 82.41, 110, 164.81], at, at + 12, 0.035, 4); },
+      closing: function (at) { pad([220, 277.18, 329.63, 440], at, at + (TL.end - TL.riseFrom), 0.028, 3); },
+      clink: function (at) { tone(1800, at, 0.14, 'triangle', 0.06); tone(2730, at, 0.09, 'sine', 0.025); },
+      firstStep: function (at) { tone(120, at, 0.6, 'sine', 0.5, 38); noise(at, 0.22, 0.2, 'lowpass', 700, 140); },
+      step: function (at) { tone(100, at, 0.2, 'sine', 0.15, 50); noise(at, 0.08, 0.06, 'lowpass', 500); },
+      thunk: function (at) { tone(170, at, 0.3, 'sine', 0.3, 55); noise(at, 0.1, 0.14, 'bandpass', 900); },
+      swoosh: function (at) { noise(at, 0.9, 0.09, 'bandpass', 500, 2600, 0.3); },
+      // a short "level clear" tune: C E G C ... G C, with a bass line
+      win: function (at) {
+        [[523.25, 0, 0.12], [659.25, 0.12, 0.12], [783.99, 0.24, 0.12], [1046.5, 0.36, 0.28],
+         [783.99, 0.68, 0.12], [1046.5, 0.82, 0.7]].forEach(function (n) {
+          tone(n[0], at + n[1], n[2] + 0.08, 'square', 0.045, null, chip);
+        });
+        [[130.81, 0, 0.34], [196, 0.36, 0.4], [261.63, 0.82, 0.7]].forEach(function (n) {
+          tone(n[0], at + n[1], n[2], 'triangle', 0.11, null, chip);
+        });
+      }
+    };
+
+    var climbStep = (TL.climbTo - TL.climbFrom) / 6;
+    var events = [[0.6, 'beep'], [0.8, 'opening'], [TL.stepTo, 'firstStep'], [TL.plant, 'thunk'],
+      [TL.unrollFrom, 'swoosh'], [TL.salute + 0.05, 'win'], [TL.riseFrom, 'closing'], [TL.fadeFrom - 0.6, 'beep']];
+    for (var k = 0; k < 6; k++) events.push([TL.climbFrom + (k + 0.5) * climbStep, 'clink']);
+    for (var p = 0; p < PRINTS; p++) events.push([TL.walkFrom + p * (TL.walkTo - TL.walkFrom) / PRINTS, 'step']);
+
+    return {
+      // schedule everything from film time s0 (seconds) on, starting now
+      play: function (s0) {
+        var t0 = c.currentTime + 0.05;
+        events.forEach(function (e) { if (e[0] >= s0) fx[e[1]](t0 + e[0] - s0); });
+      },
+      stop: function (secs) {
+        var now = c.currentTime;
+        out.gain.cancelScheduledValues(now);
+        out.gain.setValueAtTime(out.gain.value, now);
+        out.gain.linearRampToValueAtTime(0, now + (secs || 0.3));
+        setTimeout(function () { try { c.close(); } catch (e) { /* ignore */ } }, (secs || 0.3) * 1000 + 200);
+      }
+    };
+  }
+
+  function playIntro() {
+    try { sessionStorage.setItem(INTRO_KEY, '1'); } catch (e) { /* ignore */ }
+    introOn = true;
+    ambientRefresh();
+    var quoteParts = t('introQuote').split(/,\s*/);
+    var el = document.createElement('div');
+    el.className = 'moon-intro title';
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', t('introLabel'));
+    el.innerHTML =
+      '<canvas class="mi-scene" aria-hidden="true"></canvas>' +
+      '<div class="mi-bar mi-bar-top"></div>' +
+      '<div class="mi-bar mi-bar-bottom"><p class="mi-cap">' + esc(t('introDate')) + ' &nbsp;·&nbsp; ' + esc(t('introPlace')) + '</p></div>' +
+      '<blockquote class="mi-quote">' +
+        '<p><span class="mi-q1">' + esc(quoteParts[0] + (quoteParts.length > 1 ? ',' : '')) + '</span>' +
+        '<span class="mi-q2">' + esc(quoteParts.slice(1).join(', ')) + '</span></p>' +
+        '<footer class="mi-who">' + esc(t('introWho')) + '</footer>' +
+      '</blockquote>' +
+      '<div class="mi-start-wrap">' +
+        '<p class="mi-hint">' + esc(t('introSoundHint')) + '</p>' +
+        '<button type="button" class="mi-start">&#9654; ' + esc(t('introStart')) + '</button>' +
+      '</div>' +
+      '<button type="button" class="btn btn-small btn-ghost mi-skip">' + esc(t('introSkip')) + '</button>';
+    document.body.appendChild(el);
+    document.body.classList.add('moon-intro-open');
+    var cv = el.querySelector('canvas'), ctx = cv.getContext('2d');
+    var startBtn = el.querySelector('.mi-start');
+    var parts = { cap: el.querySelector('.mi-cap'), q1: el.querySelector('.mi-q1'), q2: el.querySelector('.mi-q2'), who: el.querySelector('.mi-who') };
+
+    // ---- the world: sky and ground around the Eagle scene, sized to the screen ----
+    var W = 0, H = 0, ox = 0, top = 0, world = [], twinkles = [];
+    var sprite = [];
+    for (var f = 0; f < SPRITES.FRAMES; f++) {
+      var sc = document.createElement('canvas');
+      SPRITES.draw(sc, 'eagle', f, 'noflag', 128);
+      sprite.push(sc);
+    }
+    function build() {
+      var vw = window.innerWidth, vh = Math.max(1, window.innerHeight), aspect = vw / vh;
+      // a strip of ground below the scene, as tall as the bottom film bar
+      // (same size as in the CSS) so the bar never covers Armstrong's feet
+      var bar = Math.min(120, Math.max(44, vh * 0.11));
+      var below = Math.max(16, Math.ceil(bar * 128 / Math.max(1, vh - bar)) + 4);
+      // wide screens: the scene plus that strip, as tall as the screen;
+      // tall phone screens: 128 px wide, with more sky above
+      if (aspect >= 128 / (128 + below)) { H = 128 + below; W = Math.round(H * aspect / 2) * 2; }
+      else { W = 128; H = Math.round(128 / aspect / 2) * 2; }
+      ox = Math.floor((W - 128) / 2);
+      top = SKY + H - 128 - below;
+      cv.width = W; cv.height = H;
+      ctx.imageSmoothingEnabled = false;
+      var bg = SPRITES.backdrop(W, SKY + H, top, 23);
+      // the Eagle scene's left and right edges dissolve into the wider sky and
+      // ground through the same dither pattern, so there is no visible seam
+      var E = 16;
+      world = sprite.map(function (src) {
+        var m = document.createElement('canvas');
+        m.width = 128; m.height = 128;
+        var mc = m.getContext('2d');
+        mc.drawImage(src, 0, 0);
+        if (W > 128) {
+          var img = mc.getImageData(0, 0, 128, 128), d = img.data;
+          for (var y = 0; y < 128; y++) for (var x = 0; x < 128; x++) {
+            var edge = Math.min(x, 127 - x);
+            if (edge < E && SPRITES.bayer(x + ox, y + top) > (edge + 0.5) / E) d[(y * 128 + x) * 4 + 3] = 0;
+          }
+          mc.putImageData(img, 0, 0);
+        }
+        var w = document.createElement('canvas');
+        w.width = W; w.height = SKY + H;
+        var wc = w.getContext('2d');
+        wc.drawImage(bg, 0, 0);
+        wc.drawImage(m, ox, top);
+        return w;
+      });
+      var r = rng(31);
+      twinkles = [];
+      for (var i = 0; i < Math.round(W * 0.25); i++) twinkles.push({ x: Math.floor(r() * W), y: Math.floor(r() * (top + 60)), p: r() * 6 });
+    }
+    build();
+
+    // ?intro=12 starts 12 s into the film (handy for checking one moment)
+    var from = /[?&]intro=(\d+(?:\.\d+)?)/.exec(location.search), s0 = from ? +from[1] : 0;
+    var start = 0, timer = 0, safety = 0, started = false, ended = false, sound = null, born = performance.now();
+
+    // camera: 0 = up in the stars, SKY = looking at Eagle
+    function camAt(s) {
+      if (!started) return 0;
+      if (s < TL.riseFrom) return SKY * ease(span(s, TL.revealFrom, TL.revealTo));
+      return SKY * (1 - ease(span(s, TL.riseFrom, TL.riseTo)));
+    }
+
+    function draw(s) {
+      var tw = (performance.now() - born) / 1000;
+      var cam = Math.round(camAt(s));
+      var shake = started && s > TL.stepTo && s < TL.stepTo + 0.35 ? (Math.floor(s * 40) % 2 ? 1 : -1) : 0;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.drawImage(world[Math.floor(tw * 2) % world.length], 0, -cam + shake);
+      ctx.translate(0, -cam + shake);
+      twinkles.forEach(function (st) {
+        var v = Math.sin(tw * 1.7 + st.p);
+        if (v > 0.6) { ctx.fillStyle = v > 0.93 ? '#ffffff' : '#c9d4ff'; ctx.fillRect(st.x, st.y, 1, 1); }
+      });
+      ctx.translate(ox, top);    // from here on: Eagle scene coordinates
+      if (!started) return;
+
+      // Armstrong
+      var x, feet, pose, carrying = false;
+      if (s < TL.climbFrom) { x = 64; feet = 82; pose = 'stand'; }
+      else if (s < TL.climbTo) {
+        x = 64; feet = 82 + 19 * span(s, TL.climbFrom, TL.climbTo);
+        pose = Math.floor(s * 2.6) % 2 ? 'climbA' : 'climbB';
+      } else if (s < TL.stepFrom) { x = 64; feet = 101; pose = 'stand'; }       // a pause on the footpad
+      else if (s < TL.stepTo) {                                                // the small step
+        var h = smooth(span(s, TL.stepFrom, TL.stepTo));
+        x = 64 + (WALK_X0 - 64) * h; feet = 101 + (WALK_F0 - 101) * h - Math.sin(Math.PI * h) * 4; pose = 'walk';
+      } else if (s < TL.walkFrom) { x = WALK_X0; feet = WALK_F0; pose = 'stand'; }
+      else if (s < TL.walkTo) {
+        var w = span(s, TL.walkFrom, TL.walkTo);
+        x = WALK_X0 + (WALK_X1 - WALK_X0) * w; feet = WALK_F0 + (WALK_F1 - WALK_F0) * w;
+        pose = Math.floor(s * 4.5) % 2 ? 'walk' : 'stand'; carrying = true;
+      } else { x = WALK_X1; feet = WALK_F1; pose = s > TL.salute ? 'salute' : 'stand'; }
+
+      // footprints: the first one where he lands, then one per step
+      if (s >= TL.stepTo) {
+        var n = 1 + (s >= TL.walkFrom ? Math.min(PRINTS - 1, Math.floor(span(s, TL.walkFrom, TL.walkTo) * PRINTS)) : 0);
+        ctx.fillStyle = '#726d61';
+        for (var k = 0; k < n; k++) {
+          var pw = k / PRINTS;
+          ctx.fillRect(Math.round(WALK_X0 + (WALK_X1 - WALK_X0) * pw) - 1, Math.round(WALK_F0 + (WALK_F1 - WALK_F0) * pw) + (k % 2 ? 1 : -1), 3, 1);
+        }
+      }
+
+      // the flag: carried, pushed into the ground, then unrolled
+      if (carrying) {
+        ctx.fillStyle = '#0a0b16';
+        ctx.fillRect(Math.round(x) + 4, Math.round(feet) - 27, 3, 26);
+        ctx.fillStyle = '#dfe3ec';
+        ctx.fillRect(Math.round(x) + 5, Math.round(feet) - 26, 1, 24);
+      } else if (s >= TL.walkTo) {
+        var sink = Math.round(5 * (1 - span(s, TL.plant, TL.plant + 0.4)));
+        ctx.fillStyle = '#0a0b16';
+        ctx.fillRect(FLAG_X - 1, FLAG_TOP - 1 - sink, 3, FLAG_BASE - FLAG_TOP + 2);
+        ctx.fillStyle = '#dfe3ec';
+        ctx.fillRect(FLAG_X, FLAG_TOP - sink, 1, FLAG_BASE - FLAG_TOP);
+        var cols = Math.round(FLAG_W * smooth(span(s, TL.unrollFrom, TL.unrollTo)));
+        if (cols > 0) {
+          ctx.fillStyle = '#0a0b16';
+          ctx.fillRect(FLAG_X, FLAG_TOP - 1 - sink, cols + 2, FLAG_H + 3);
+          ctx.fillStyle = '#dfe3ec';
+          ctx.fillRect(FLAG_X, FLAG_TOP - sink, cols + 1, 1);              // the top bar holding it out
+          SPRITES.flag(ctx, FLAG_X + 1, FLAG_TOP + 1 - sink, FLAG_W, cols, FLAG_H);
+        }
+      }
+      drawAstro(ctx, x, feet, pose);
+    }
+
+    function frame() {
+      if (!started) { draw(0); return; }
+      var s = (performance.now() - start) / 1000;
+      draw(s);
+      parts.cap.classList.toggle('show', s > TL.capFrom && s < TL.capTo);
+      parts.q1.classList.toggle('show', s > TL.quote1 && s < TL.fadeFrom);
+      parts.q2.classList.toggle('show', s > TL.quote2 && s < TL.fadeFrom);
+      parts.who.classList.toggle('show', s > TL.who && s < TL.fadeFrom);
+      el.classList.toggle('cinema', s < TL.fadeFrom);
+      el.classList.toggle('dark', s < 0.9 || s > TL.fadeFrom);   // a beat of black at the start, a fade to black at the end
+      if (s >= TL.end) finish(true);
+    }
+
+    function begin() {
+      if (started || ended) return;
+      started = true;
+      el.classList.remove('title');
+      el.classList.add('cinema');
+      el.querySelector('.mi-skip').focus();
+      try { sound = introSounds(); } catch (e) { sound = null; }
+      if (sound) sound.play(s0);
+      start = performance.now() - s0 * 1000;
+      frame();
+      // whatever happens, never keep visitors from the site for long
+      safety = setTimeout(function () { finish(true); }, (TL.end - s0 + 2) * 1000);
+    }
+
+    // natural: the film reached its end (already faded to black)
+    function finish(natural) {
+      if (ended) return;
+      ended = true;
+      clearInterval(timer); clearTimeout(safety);
+      window.removeEventListener('resize', onResize);
+      document.removeEventListener('keydown', onKey);
+      if (sound) sound.stop(natural ? 0.3 : 0.6);
+      el.classList.add('out');
+      setTimeout(function () {
+        el.remove();
+        document.body.classList.remove('moon-intro-open');
+        introOn = false;
+        ambientRefresh();
+        app.focus({ preventScroll: true });
+      }, 900);
+    }
+    function onKey(e) { if (e.key === 'Escape') finish(false); }
+    var resizeT = 0;
+    function onResize() { clearTimeout(resizeT); resizeT = setTimeout(function () { build(); frame(); }, 150); }
+
+    startBtn.addEventListener('click', begin);
+    el.querySelector('.mi-skip').addEventListener('click', function () { finish(false); });
+    document.addEventListener('keydown', onKey);
+    window.addEventListener('resize', onResize);
+    // a plain 30 fps timer, not requestAnimationFrame: some embedded views
+    // pause animation frames, which would leave the intro stuck
+    frame();
+    timer = setInterval(frame, 33);
+    setTimeout(function () { el.classList.add('on'); startBtn.focus({ preventScroll: true }); }, 30);
+  }
+
   /* ---------- init ---------- */
 
   function init() {
@@ -2040,6 +2429,7 @@
     startMeteors();
     initAmbient();
     render(true);
+    if (shouldIntro()) playIntro();
   }
 
   init();
