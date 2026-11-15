@@ -273,7 +273,10 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   .orb-moon { left: -14px; }
   .orb-mars { width: 32px; height: 32px; }
   .panel { padding: 18px; }
-  .brand { font-size: 10px; }
+  /* the title shrinks to its longest word; past that, the buttons wrap below it */
+  .brand { font-size: 10px; flex: 1 1 0; min-width: min-content; }
+  .sound-toggle + .lang-toggle { margin-left: 0; }
+  .topbar { column-gap: 8px; }
   .mainnav { flex-basis: 100%; order: 3; overflow-x: auto; flex-wrap: nowrap; gap: 12px; justify-content: space-between; scrollbar-width: none; }
   .mainnav::-webkit-scrollbar { display: none; }
   .mainnav a { font-size: 9px; }
@@ -538,7 +541,33 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   clip-path: polygon(50% 0, 62% 36%, 100% 36%, 69% 58%, 80% 100%, 50% 74%, 20% 100%, 31% 58%, 0 36%, 38% 36%);
 }
 .score-stars span.on { background: var(--gold); }
+.quiz-score .score-pct {
+  font-family: var(--font-pixel); font-size: clamp(28px, 8vw, 44px); line-height: 1;
+  color: var(--paper-ink); margin: 18px 0 10px; text-shadow: 3px 3px 0 var(--gold);
+}
+.score-bar {
+  height: 18px; max-width: 280px; margin: 0 auto; background: var(--paper-2);
+  border: 3px solid var(--ink); overflow: hidden;
+}
+.score-bar span {
+  display: block; height: 100%; background: var(--gold);
+  animation: score-fill .8s steps(10) both;
+}
+@keyframes score-fill { from { width: 0; } }
+.quiz-score .score-best { font-size: 20px; margin: 0 0 8px; opacity: .8; }
 /* end:quiz */
+
+/* ---------- ambient sound toggle ---------- */
+
+.sound-toggle {
+  margin-left: auto; display: flex; align-items: center; justify-content: center;
+  min-width: 40px; min-height: 38px; padding: 4px; cursor: pointer;
+  border: 3px solid var(--ink); background: var(--night-2); color: var(--muted);
+}
+.sound-toggle:hover { color: var(--text); }
+.sound-toggle[aria-pressed="true"] { color: var(--gold); }
+.sound-toggle svg { width: 25px; height: 20px; fill: currentColor; shape-rendering: crispEdges; }
+.sound-toggle + .lang-toggle { margin-left: 8px; }
 
 /* ---------- motion polish ---------- */
 
@@ -737,9 +766,11 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
 @keyframes static { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(12px); } }
 .tn-switch { display: flex; align-items: center; gap: 8px; }
 .tn-btn {
-  font-family: var(--font-pixel); font-size: 9px; color: var(--muted); background: none; border: 0; padding: 8px 4px; cursor: pointer;
+  font-family: var(--font-pixel); font-size: 9px; line-height: 1.6; color: var(--muted); background: none;
+  border: 0; border-bottom: 3px solid transparent; padding: 6px 4px 4px; cursor: pointer;
 }
-.tn-btn[aria-pressed="true"] { color: var(--gold); text-decoration: underline; text-underline-offset: 5px; }
+/* one line under the whole label (an underline per text line overlapped when the label wraps) */
+.tn-btn[aria-pressed="true"] { color: var(--gold); border-bottom-color: var(--gold); }
 .tn-flip { display: inline-flex; background: none; border: 0; padding: 6px; cursor: pointer; }
 .sw { display: inline-block; }
 .tn-flip .sw { width: 44px; height: 22px; background: var(--gold); }
@@ -759,7 +790,11 @@ main { flex: 1; width: 100%; max-width: 1040px; margin: 0 auto; padding: 24px 16
   content: ""; position: absolute; left: -26px; top: 12px; width: 12px; height: 12px;
   background: var(--night); border: 3px solid var(--gold);
 }
-.timeline .tl-last::before { background: var(--gold); }
+/* the then/now switch lights up the matching events and dims the rest */
+.timeline li { transition: opacity .3s steps(3); }
+.timeline li::before { transition: background-color .3s steps(3); }
+.where-card:not(.show-now) .tl-after, .where-card.show-now .tl-mission { opacity: .4; }
+.where-card:not(.show-now) .tl-mission::before, .where-card.show-now .tl-after::before { background: var(--gold); }
 .tl-date { font-family: var(--font-pixel); font-size: 9px; line-height: 1.6; color: var(--gold); padding-top: 3px; }
 .tl-text { font-size: 21px; line-height: 1.15; }
 .where-actions, .map-actions { display: flex; flex-wrap: wrap; gap: 12px; }

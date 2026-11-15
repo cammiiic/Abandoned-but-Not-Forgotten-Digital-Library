@@ -233,6 +233,7 @@
     document.querySelectorAll('.lang-toggle button').forEach(function (b) {
       b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === state.lang));
     });
+    soundButton();
   }
 
   /* ---------- router ---------- */
@@ -491,6 +492,7 @@
     if (narrator) narrator.pause();
     ab.playing = false; ab.part = -1; ab.want = -1; ab.msg = '';
     clearTimeout(syncTimer);
+    ambientRefresh();
   }
 
   // play part i, turning to its page first if it isn't on screen
@@ -614,6 +616,7 @@
 
   // refresh the bar and the "now playing" marks on the pages
   function abUpdate() {
+    ambientRefresh();   // fade the ambient sound out / back in with the narration
     var bar = app.querySelector('.ab'), book = getBook(reader.id);
     if (!bar || !book) return;
     var n = narrator, sounding = ab.playing && n && !n.paused;
@@ -747,15 +750,23 @@
         d.keys.push(k); d.color[k] = art.palette[k].color; d.name[k] = art.palette[k].name;
       });
     }
+    // squares not painted yet show the finished drawing in light grays (like a
+    // black-and-white photo), so the spacecraft's shape and shading are visible
+    // from the start and the numbers stay readable on top
+    d.gray = d.reveal.map(function (hex) {
+      var n = parseInt(String(hex).slice(1), 16) || 0;
+      var lum = ((n >> 16) * 0.3 + ((n >> 8) & 255) * 0.59 + (n & 255) * 0.11);
+      var g = Math.round(150 + lum * 0.4);
+      return 'rgb(' + g + ',' + g + ',' + g + ')';
+    });
     return (cbnCache[book.id] = d);
   }
 
-  // pale version of a crayon color, used to show which squares match it
+  // see-through wash of a crayon color, laid over the gray squares that match it
   function tint(hex) {
     var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
-    if (r * 0.3 + g * 0.59 + b * 0.11 > 215) return '#cfe3ff';   // white crayon: a cool blue hint instead
-    function m(c) { return Math.round(c * 0.35 + 255 * 0.65); }
-    return 'rgb(' + m(r) + ',' + m(g) + ',' + m(b) + ')';
+    if (r * 0.3 + g * 0.59 + b * 0.11 > 215) return 'rgba(95,168,255,.4)';   // white crayon: a cool blue hint instead
+    return 'rgba(' + r + ',' + g + ',' + b + ',.45)';
   }
 
   function getCbn(book) {
@@ -865,9 +876,10 @@
             : !k ? d.fixed[i]
             : s.filled[i] ? d.color[k]
             : flash && flash.i === i ? flash.c
-            : k === s.sel ? hl : '#fffaf0';
+            : d.gray[i];
           ctx.fillRect(px, py, pw, ph);
           if (!open) continue;
+          if (k === s.sel && !(flash && flash.i === i)) { ctx.fillStyle = hl; ctx.fillRect(px, py, pw, ph); }
           if (grid) {
             ctx.fillStyle = 'rgba(52,38,26,.3)';
             ctx.fillRect(px + pw - line, py, line, ph);
@@ -919,7 +931,7 @@
     }
 
     /* ---- pointer input: 1 finger/mouse paints (or moves), 2 fingers pinch + pan ---- */
-    var ptrs = {}, gesture = null, last = null, pinch = null, space = false;
+    var ptrs = {}, gesture = null, last = null, pinch = null, space = false, tapStart = null;
     function pos(e) { var r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
     function setCursor() { cv.style.cursor = s.mode === 'move' || space ? (gesture === 'pan' ? 'grabbing' : 'grab') : 'crosshair'; }
 
@@ -935,7 +947,11 @@
         gesture = 'pinch';
       } else if (ids.length === 1) {
         last = ptrs[e.pointerId];
-        gesture = (s.mode === 'move' || space || e.button === 1 || e.button === 2) ? 'pan' : 'paint';
+        gesture = (s.mode === 'move' || space || e.button === 1 || e.button === 2) ? 'pan'
+          // a finger on a touch screen: a tap paints, a drag moves the drawing
+          : e.pointerType === 'touch' ? 'touch'
+          : 'paint';
+        if (gesture === 'touch') tapStart = { x: last.x, y: last.y };
         if (gesture === 'paint') { paintCell(cellAt(last.x, last.y), true); afterPaint(); }
       }
       setCursor();
@@ -954,7 +970,11 @@
         s.view.ox = mx - (pinch.mx - pinch.ox) * sc / pinch.sc;
         s.view.oy = my - (pinch.my - pinch.oy) * sc / pinch.sc;
         clampView(); draw();
-      } else if (gesture === 'pan') {
+      } else if (gesture === 'touch') {
+        // moved far enough to be a drag, not a tap: start moving the drawing
+        if (Math.hypot(p.x - tapStart.x, p.y - tapStart.y) > 8) { gesture = 'pan'; setCursor(); }
+      }
+      if (gesture === 'pan') {
         s.view.ox += p.x - last.x; s.view.oy += p.y - last.y; last = p;
         clampView(); draw();
       } else if (gesture === 'paint') {
@@ -962,6 +982,10 @@
       }
     });
     function lift(e) {
+      // a finger lifted without dragging: that was a tap, so paint the square
+      if (gesture === 'touch' && e.type === 'pointerup' && ptrs[e.pointerId]) {
+        paintCell(cellAt(tapStart.x, tapStart.y), true); afterPaint();
+      }
       delete ptrs[e.pointerId];
       var n = Object.keys(ptrs).length;
       if (n === 0) gesture = null;
@@ -1058,6 +1082,15 @@
 
   var QUIZ_LEN = 5;
   var quizState = {};
+  var BEST_KEY = 'abnf-best-';
+
+  // best percentage per book, kept on this device
+  function bestScore(id) {
+    try { return +localStorage.getItem(BEST_KEY + id) || 0; } catch (e) { return 0; }
+  }
+  function saveBest(id, pct) {
+    try { localStorage.setItem(BEST_KEY + id, String(pct)); } catch (e) { /* ignore */ }
+  }
 
   function newQuiz(book) {
     var idx = shuffle(book.quiz.map(function (_, i) { return i; })).slice(0, Math.min(QUIZ_LEN, book.quiz.length));
@@ -1076,12 +1109,23 @@
     if (qs.done) {
       var score = qs.items.filter(function (it) { return it.pick === book.quiz[it.q].correct; }).length;
       var msg = score === total ? 'scorePerfect' : score >= Math.ceil(total * 0.6) ? 'scoreGood' : 'scoreTryAgain';
+      var pct = Math.round(score / total * 100);
+      // record the best once per finished quiz (redraws on language switch don't count again)
+      if (!qs.saved) {
+        qs.saved = true;
+        qs.newBest = pct > 0 && pct > bestScore(book.id);
+        if (qs.newBest) saveBest(book.id, pct);
+      }
+      var best = Math.max(bestScore(book.id), pct);
       body.innerHTML =
         '<div class="quiz-score" role="status">' +
           '<div class="score-stars" aria-hidden="true">' +
             qs.items.map(function (it) { return '<span class="' + (it.pick === book.quiz[it.q].correct ? 'on' : '') + '"></span>'; }).join('') +
           '</div>' +
+          '<p class="score-pct">' + pct + '%</p>' +
+          '<div class="score-bar" aria-hidden="true"><span style="width:' + pct + '%"></span></div>' +
           '<p class="score-big">' + esc(t('score', { s: score, t: total })) + '</p>' +
+          '<p class="score-best">' + esc(qs.newBest ? t('newBest') : t('bestScore', { p: best })) + '</p>' +
           '<p>' + esc(t(msg)) + '</p>' +
           '<button type="button" class="btn js-newq">' + esc(t('newQuestions')) + '</button>' +
         '</div>';
@@ -1545,7 +1589,7 @@
               artCanvas(x.id, 'craft-tab-art') + '<span>' + esc(L(x.craftName)) + '</span></button>';
           }).join('') +
         '</div>' +
-        '<div class="where-card panel">' +
+        '<div class="where-card panel' + (now ? ' show-now' : '') + '">' +
           '<figure class="then-now' + (now ? ' is-now' : '') + '">' +
             '<div class="tn-frame">' +
               artCanvas(b.id, 'tn-art tn-then', L(b.craftName) + ': ' + t('whereThen')) +
@@ -1565,8 +1609,11 @@
             '<p class="where-text">' + esc(L(b.now.text)) + '</p>' +
             '<h3 class="tl-head">' + esc(t('whereTimeline')) + '</h3>' +
             '<ol class="timeline">' +
+              // the switch lights up the events that match the picture:
+              // during the mission, or after it (abandoned, today)
               b.timeline.map(function (e, i) {
-                return '<li' + (i === b.timeline.length - 1 ? ' class="tl-last"' : '') + '><span class="tl-date">' + esc(L(e.date)) + '</span><span class="tl-text">' + esc(L(e.text)) + '</span></li>';
+                var split = b.timelineSplit != null ? b.timelineSplit : b.timeline.length - 1;
+                return '<li class="' + (i < split ? 'tl-mission' : 'tl-after') + '"><span class="tl-date">' + esc(L(e.date)) + '</span><span class="tl-text">' + esc(L(e.text)) + '</span></li>';
               }).join('') +
             '</ol>' +
             '<div class="where-actions">' +
@@ -1582,6 +1629,7 @@
       whereState.view = v;
       var isNow = v === 'now';
       fig.classList.toggle('is-now', isNow);
+      app.querySelector('.where-card').classList.toggle('show-now', isNow);
       fig.classList.remove('flicker'); void fig.offsetWidth; fig.classList.add('flicker');
       fig.querySelector('.tn-stamp').textContent = t(isNow ? 'whereNow' : 'whereThen');
       fig.querySelectorAll('.tn-btn').forEach(function (x) { x.setAttribute('aria-pressed', String(x.getAttribute('data-v') === v)); });
@@ -1705,6 +1753,270 @@
       '</section>';
   };
 
+  /* ---------- Ambient sound ----------
+     A soft space drone, faint wind and the odd twinkle, made live with
+     Web Audio (no file to download). Browsers only allow sound after the
+     visitor's first tap or key press, so it starts then. It fades out
+     while the audiobook is playing and comes back when narration stops.
+     The on/off choice is remembered on this device.                    */
+
+  var SOUND_KEY = 'abnf-sound';
+  var AMB_VOL = 0.3;
+  var amb = { enabled: true, unlocked: false, nodes: null, on: false, waitTimer: 0, chimeTimer: 0, chordTimer: 0, signalTimer: 0, chord: 0 };
+
+  // Amaj7 -> B/A -> Dmaj7 -> E: bright and dreamy (the B over A is the
+  // "wonder" sound sci-fi films use). About 10 s each, crossfading.
+  // notes: bass, low, middle, top (Hz); chimes: high notes that fit the chord, low to high
+  var CHORD_SECS = 10, CHORD_FADE = 3.5;
+  var CHORDS = [
+    { notes: [110, 164.81, 207.65, 277.18],   chimes: [880, 1108.73, 1318.51, 1661.22] },
+    { notes: [110, 185, 246.94, 311.13],      chimes: [987.77, 1244.51, 1479.98, 1760] },
+    { notes: [146.83, 220, 277.18, 369.99],   chimes: [1108.73, 1174.66, 1479.98, 1760] },
+    { notes: [82.41, 246.94, 329.63, 415.3],  chimes: [987.77, 1318.51, 1661.22, 1975.53] }
+  ];
+  var VOICES = [
+    { type: 'sine', level: 0.22, detune: 0 },
+    { type: 'sine', level: 0.18, detune: 0 },
+    { type: 'triangle', level: 0.14, detune: 5 },
+    { type: 'triangle', level: 0.12, detune: -4 }
+  ];
+
+  function randomPick(list) { return list[Math.floor(Math.random() * list.length)]; }
+
+  // left/right placement (skipped on browsers without stereo panning)
+  function panTo(c, x, dest) {
+    if (!c.createStereoPanner) return dest;
+    var p = c.createStereoPanner();
+    p.pan.value = x; p.connect(dest);
+    return p;
+  }
+
+  var SOUND_ICONS = {
+    on: '<svg viewBox="0 0 10 8" aria-hidden="true"><path d="M0 3h2v2H0zM2 3h1V2h1V1h1v6H4V6H3V5H2zM6 3h1v2H6zM8 1h1v6H8z"/></svg>',
+    off: '<svg viewBox="0 0 10 8" aria-hidden="true"><path d="M0 3h2v2H0zM2 3h1V2h1V1h1v6H4V6H3V5H2zM6 2h1v1H6zM8 2h1v1H8zM7 3h1v2H7zM6 5h1v1H6zM8 5h1v1H8z"/></svg>'
+  };
+
+  function buildAmbient() {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    var ctx = new AC();
+    var master = ctx.createGain();
+    master.gain.value = 0;
+    master.connect(ctx.destination);
+
+    function lfo(rate, amount, target) {
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = rate; g.gain.value = amount;
+      o.connect(g); g.connect(target); o.start();
+    }
+
+    // pad: the chord progression through a slowly opening and closing filter
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass'; lp.frequency.value = 1100; lp.Q.value = 0.7;
+    var drone = ctx.createGain();
+    drone.gain.value = 0.5;
+    lp.connect(drone); drone.connect(master);
+    lfo(0.04, 400, lp.frequency);
+    lfo(0.07, 0.15, drone.gain);
+
+    // wind: looped brown noise through a band-pass
+    var len = ctx.sampleRate * 4, buf = ctx.createBuffer(1, len, ctx.sampleRate), d = buf.getChannelData(0), last = 0;
+    for (var i = 0; i < len; i++) { last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02; d[i] = last * 3.5; }
+    var noise = ctx.createBufferSource();
+    noise.buffer = buf; noise.loop = true;
+    var bp = ctx.createBiquadFilter();
+    bp.type = 'bandpass'; bp.frequency.value = 380; bp.Q.value = 0.8;
+    var wind = ctx.createGain();
+    wind.gain.value = 0.07;
+    // the wind drifts slowly from one side to the other and its tone sweeps
+    var windOut = panTo(ctx, 0, master);
+    noise.connect(bp); bp.connect(wind); wind.connect(windOut);
+    noise.start();
+    lfo(0.03, 0.04, wind.gain);
+    lfo(0.05, 180, bp.frequency);
+    if (windOut.pan) lfo(0.02, 0.6, windOut.pan);
+
+    // twinkles and signals go through a long echo, like they come from far away
+    var delay = ctx.createDelay(2), fb = ctx.createGain(), wet = ctx.createGain(), chimes = ctx.createGain();
+    delay.delayTime.value = 0.45; fb.gain.value = 0.45; wet.gain.value = 0.5; chimes.gain.value = 0.6;
+    delay.connect(fb); fb.connect(delay); delay.connect(wet); wet.connect(master);
+    chimes.connect(master); chimes.connect(delay);
+
+    // radio band: signals sound thin, like they come through a transmitter
+    var radio = ctx.createBiquadFilter();
+    radio.type = 'bandpass'; radio.frequency.value = 1800; radio.Q.value = 1.2;
+    radio.connect(chimes);
+
+    var nodes = { ctx: ctx, master: master, chimes: chimes, radio: radio, pad: lp, voices: [] };
+    playChord(nodes, amb.chord, 0.05);
+    return nodes;
+  }
+
+  // fade in a fresh set of voices for chord idx while the old set fades out
+  function playChord(nodes, idx, fade) {
+    var c = nodes.ctx, now = c.currentTime;
+    nodes.voices.forEach(function (v) {
+      v.g.gain.cancelScheduledValues(now);
+      v.g.gain.setValueAtTime(v.g.gain.value, now);
+      v.g.gain.linearRampToValueAtTime(0, now + fade);
+      v.o.stop(now + fade + 0.1);
+    });
+    nodes.voices = CHORDS[idx].notes.map(function (f, k) {
+      var o = c.createOscillator(), g = c.createGain(), voice = VOICES[k];
+      o.type = voice.type; o.frequency.value = f; o.detune.value = voice.detune;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(voice.level, now + fade);
+      o.connect(g); g.connect(nodes.pad); o.start(now);
+      return { o: o, g: g };
+    });
+  }
+
+  function nextChord() {
+    clearTimeout(amb.chordTimer);
+    if (!amb.on || !amb.nodes) return;
+    amb.chord = (amb.chord + 1) % CHORDS.length;
+    playChord(amb.nodes, amb.chord, CHORD_FADE);
+    amb.chordTimer = setTimeout(nextChord, CHORD_SECS * 1000);
+  }
+
+  // one music-box note: a pure tone plus a quicker-fading overtone
+  function bell(f, at, pan) {
+    var c = amb.nodes.ctx, out = panTo(c, pan, amb.nodes.chimes);
+    [[1, 0.06, 2.6], [2, 0.02, 0.8]].forEach(function (h) {
+      var o = c.createOscillator(), g = c.createGain();
+      o.frequency.value = f * h[0];
+      g.gain.setValueAtTime(0, at);
+      g.gain.linearRampToValueAtTime(h[1], at + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, at + h[2]);
+      o.connect(g); g.connect(out);
+      o.start(at); o.stop(at + h[2] + 0.1);
+    });
+  }
+
+  // a single twinkle, or now and then a little run of 2-3 rising notes
+  function chime() {
+    clearTimeout(amb.chimeTimer);
+    if (!amb.on || !amb.nodes) return;
+    var now = amb.nodes.ctx.currentTime, notes = CHORDS[amb.chord].chimes, pan = Math.random() * 1.2 - 0.6;
+    if (Math.random() < 0.35) {
+      var start = Math.floor(Math.random() * (notes.length - 1)), n = Math.min(notes.length - start, 2 + Math.floor(Math.random() * 2));
+      for (var k = 0; k < n; k++) bell(notes[start + k], now + k * 0.18, pan);
+    } else {
+      bell(randomPick(notes), now, pan);
+    }
+    amb.chimeTimer = setTimeout(chime, 1500 + Math.random() * 2500);
+  }
+
+  // short blip for the radio beeps
+  function blip(f, at, len, vol, out) {
+    var c = amb.nodes.ctx, o = c.createOscillator(), g = c.createGain();
+    o.type = 'square'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, at);
+    g.gain.linearRampToValueAtTime(vol, at + 0.005);
+    g.gain.setValueAtTime(vol, at + len - 0.01);
+    g.gain.linearRampToValueAtTime(0, at + len);
+    o.connect(g); g.connect(out);
+    o.start(at); o.stop(at + len + 0.02);
+  }
+
+  // a far-off spacecraft signal: radio beeps most of the time, sometimes a sonar ping
+  function signal() {
+    clearTimeout(amb.signalTimer);
+    if (!amb.on || !amb.nodes) return;
+    var c = amb.nodes.ctx, now = c.currentTime, pan = Math.random() * 1.6 - 0.8;
+    if (Math.random() < 0.7) {
+      var out = panTo(c, pan, amb.nodes.radio), f = randomPick([1318.51, 1760, 2217.46]);
+      var n = 2 + Math.floor(Math.random() * 3), alt = Math.random() < 0.5;
+      for (var k = 0; k < n; k++) blip(alt && k % 2 ? f * 0.75 : f, now + k * 0.16, 0.07, 0.03, out);
+    } else {
+      var o = c.createOscillator(), g = c.createGain();
+      o.frequency.setValueAtTime(1760, now);
+      o.frequency.exponentialRampToValueAtTime(1700, now + 1.5);
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.05, now + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+      o.connect(g); g.connect(panTo(c, pan, amb.nodes.chimes));
+      o.start(now); o.stop(now + 2.3);
+    }
+    amb.signalTimer = setTimeout(signal, 8000 + Math.random() * 10000);
+  }
+
+  function fadeAmbient(to, secs) {
+    var c = amb.nodes.ctx, gain = amb.nodes.master.gain, now = c.currentTime;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(to, now + secs);
+  }
+
+  // narration counts as busy while it's loading too, so the two never overlap
+  function narrationBusy() { return ab.playing || (narrator && !narrator.paused); }
+  function ambientWanted() { return amb.enabled && amb.unlocked && !document.hidden && !narrationBusy(); }
+
+  function ambientRefresh() {
+    if (!amb.nodes) return;
+    var want = ambientWanted();
+    if (!want) {
+      clearTimeout(amb.waitTimer); amb.waitTimer = 0;
+      if (!amb.on) return;
+      amb.on = false;
+      clearTimeout(amb.chimeTimer);
+      clearTimeout(amb.chordTimer);
+      clearTimeout(amb.signalTimer);
+      fadeAmbient(0, narrationBusy() ? 0.5 : 0.8);
+      setTimeout(function () { if (!amb.on && amb.nodes.ctx.state === 'running') amb.nodes.ctx.suspend(); }, 1000);
+      return;
+    }
+    if (amb.on || amb.waitTimer) return;
+    // wait a moment: between audiobook parts the narrator pauses only briefly
+    amb.waitTimer = setTimeout(function () {
+      amb.waitTimer = 0;
+      if (!ambientWanted() || amb.on) return;
+      amb.on = true;
+      amb.nodes.ctx.resume();
+      fadeAmbient(AMB_VOL, 2.5);
+      amb.chimeTimer = setTimeout(chime, 1500);
+      amb.chordTimer = setTimeout(nextChord, CHORD_SECS * 1000);
+      amb.signalTimer = setTimeout(signal, 4000);
+    }, 1200);
+  }
+
+  function soundButton() {
+    var b = document.querySelector('.sound-toggle');
+    if (!b) return;
+    var label = t(amb.enabled ? 'soundOn' : 'soundOff');
+    b.innerHTML = amb.enabled ? SOUND_ICONS.on : SOUND_ICONS.off;
+    b.setAttribute('aria-pressed', String(amb.enabled));
+    b.setAttribute('aria-label', label);
+    b.title = label;
+  }
+
+  function initAmbient() {
+    try { amb.enabled = localStorage.getItem(SOUND_KEY) !== 'off'; } catch (e) { /* keep default */ }
+    var btn = document.querySelector('.sound-toggle');
+    if (!(window.AudioContext || window.webkitAudioContext)) { if (btn) btn.hidden = true; return; }
+    soundButton();
+
+    // the first tap or key press unlocks sound (the context must be made inside it)
+    function unlock() {
+      document.removeEventListener('pointerdown', unlock, true);
+      document.removeEventListener('keydown', unlock, true);
+      amb.unlocked = true;
+      if (!amb.nodes) amb.nodes = buildAmbient();
+      if (amb.nodes) amb.nodes.ctx.resume();
+      ambientRefresh();
+    }
+    document.addEventListener('pointerdown', unlock, true);
+    document.addEventListener('keydown', unlock, true);
+
+    if (btn) btn.addEventListener('click', function () {
+      amb.enabled = !amb.enabled;
+      try { localStorage.setItem(SOUND_KEY, amb.enabled ? 'on' : 'off'); } catch (e) { /* ignore */ }
+      soundButton();
+      ambientRefresh();
+    });
+    document.addEventListener('visibilitychange', ambientRefresh);
+  }
+
   /* ---------- init ---------- */
 
   function init() {
@@ -1721,6 +2033,7 @@
     window.addEventListener('resize', function () { clearTimeout(resizeTimer); resizeTimer = setTimeout(drawStars, 150); });
     window.addEventListener('hashchange', function () { render(true); window.scrollTo(0, 0); app.focus({ preventScroll: true }); });
     startMeteors();
+    initAmbient();
     render(true);
   }
 

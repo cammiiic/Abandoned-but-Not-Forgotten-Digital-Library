@@ -88,7 +88,7 @@
 
       activity: 'Activity',
       colorTitle: 'Color by number',
-      colorHelp: 'Pick a color, then paint every square with its number. Drag to paint many at once. Pinch or scroll to zoom; drag with two fingers (or use Move) to look around.',
+      colorHelp: 'Pick a color, then tap every square with its number. Pinch or scroll to zoom in until you see the numbers. On a phone, drag with one finger to move around. With a mouse, drag to paint many squares at once (or use Move to look around).',
       colors: 'Colors',
       zoomIn: 'Zoom in',
       zoomOut: 'Zoom out',
@@ -113,13 +113,17 @@
       scoreGood: 'Nice work, space explorer.',
       scoreTryAgain: 'Read the book again and try new questions.',
       newQuestions: 'New questions',
+      bestScore: 'Your best: {p}%',
+      newBest: 'New best score!',
+      soundOn: 'Ambient sound: on (click to mute)',
+      soundOff: 'Ambient sound: off (click to play)',
 
       whereTitle: 'Where are they now?',
-      whereIntro: 'Pick a spacecraft and flip the switch to see it on its mission, and how it looks today.',
+      whereIntro: 'Pick a spacecraft and flip the switch to see it on its mission, and after the mission ended.',
       mapTitle: 'Graveyard map',
       mapIntro: 'Find where each spacecraft rests on the Moon and on Mars. All locations are approximate.',
       whereThen: 'On its mission',
-      whereNow: 'Today',
+      whereNow: 'After its mission',
       thenNow: 'Then & now',
       statusLabel: 'Status',
       whereTimeline: 'Timeline',
@@ -208,7 +212,7 @@
 
       activity: 'Actividad',
       colorTitle: 'Colorea por números',
-      colorHelp: 'Elige un color y pinta cada casilla que tenga su número. Arrastra para pintar varias a la vez. Pellizca o usa la rueda del ratón para hacer zoom; arrastra con dos dedos (o usa Mover) para moverte.',
+      colorHelp: 'Elige un color y toca cada casilla que tenga su número. Pellizca o usa la rueda del ratón para acercarte hasta ver los números. En el teléfono, arrastra con un dedo para moverte. Con el ratón, arrastra para pintar varias casillas a la vez (o usa Mover para moverte).',
       colors: 'Colores',
       zoomIn: 'Acercar',
       zoomOut: 'Alejar',
@@ -233,13 +237,17 @@
       scoreGood: 'Buen trabajo, explorador espacial.',
       scoreTryAgain: 'Vuelve a leer el libro y prueba con nuevas preguntas.',
       newQuestions: 'Nuevas preguntas',
+      bestScore: 'Tu mejor resultado: {p}%',
+      newBest: '¡Nuevo récord!',
+      soundOn: 'Sonido ambiental: activado (clic para silenciar)',
+      soundOff: 'Sonido ambiental: apagado (clic para activar)',
 
       whereTitle: '¿Dónde están ahora?',
-      whereIntro: 'Elige una nave y mueve el interruptor para verla en su misión y cómo se ve hoy.',
+      whereIntro: 'Elige una nave y mueve el interruptor para verla en su misión y después de que terminó.',
       mapTitle: 'Mapa del cementerio',
       mapIntro: 'Descubre dónde descansa cada nave en la Luna y en Marte. Todas las ubicaciones son aproximadas.',
       whereThen: 'En su misión',
-      whereNow: 'Hoy',
+      whereNow: 'Después de su misión',
       thenNow: 'Antes y ahora',
       statusLabel: 'Estado',
       whereTimeline: 'Línea del tiempo',
@@ -284,6 +292,7 @@
           es: 'La mitad inferior del Eagle sigue en la Base Tranquilidad, rodeada de huellas. La mitad superior quedó orbitando la Luna en 1969 y nadie sabe dónde terminó. El espejo láser que instalaron los astronautas todavía lo usan los científicos hoy.'
         }
       },
+      timelineSplit: 3,   // timeline events from this index on happen after the mission ("Today" view)
       timeline: [
         { date: { en: 'Jul 16, 1969', es: '16 jul 1969' }, text: { en: 'Launches on a Saturn V rocket from Florida.', es: 'Despega en un cohete Saturno V desde Florida.' } },
         { date: { en: 'Jul 20, 1969', es: '20 jul 1969' }, text: { en: 'Lands in the Sea of Tranquility: "The Eagle has landed." Hours later, the first human steps on the Moon.', es: 'Aterriza en el Mar de la Tranquilidad: «El Eagle ha aterrizado». Horas después, los primeros pasos humanos en la Luna.' } },
@@ -484,6 +493,7 @@
           es: 'Ebb y Flow descansan una junto a la otra en una montaña cerca del polo norte de la Luna, en el sitio de impacto Sally K. Ride. Los científicos siguen usando su mapa de gravedad para estudiar cómo se formó la Luna.'
         }
       },
+      timelineSplit: 5,   // timeline events from this index on happen after the mission ("Today" view)
       timeline: [
         { date: { en: 'Sep 10, 2011', es: '10 sep 2011' }, text: { en: 'The twins launch together from Florida.', es: 'Las gemelas despegan juntas desde Florida.' } },
         { date: { en: 'Dec 31, 2011', es: '31 dic 2011' }, text: { en: 'Ebb reaches the Moon first, on New Year\'s Eve.', es: 'Ebb llega primero a la Luna, en la víspera de Año Nuevo.' } },
@@ -681,6 +691,7 @@
           es: 'El módulo de aterrizaje sigue en la Llanura Dorada de Chryse Planitia, cubriéndose poco a poco de polvo rojo. Su orbitador, sin combustible desde 1980, todavía gira alrededor de Marte. La pregunta que hizo, «¿hay vida en Marte?», aún se sigue estudiando.'
         }
       },
+      timelineSplit: 6,   // timeline events from this index on happen after the mission ("Today" view)
       timeline: [
         { date: { en: 'Aug 20, 1975', es: '20 ago 1975' }, text: { en: 'Launches from Florida: an orbiter and a lander in one.', es: 'Despega desde Florida: un orbitador y un módulo de aterrizaje en uno.' } },
         { date: { en: 'Jun 1976', es: 'jun 1976' }, text: { en: 'Reaches Mars. The first landing spot looks too rough.', es: 'Llega a Marte. El primer lugar de aterrizaje parece demasiado accidentado.' } },
@@ -876,6 +887,7 @@
           es: 'Opportunity descansa en el Valle de la Perseverancia, con sus paneles solares cubiertos del polvo de la tormenta que lo silenció. Fue construido para 90 días y 1 kilómetro. Duró casi 15 años y recorrió más de 45 kilómetros.'
         }
       },
+      timelineSplit: 7,   // timeline events from this index on happen after the mission ("Today" view)
       timeline: [
         { date: { en: 'Jul 7, 2003', es: '7 jul 2003' }, text: { en: 'Launches from Cape Canaveral, a few weeks after its twin, Spirit.', es: 'Despega desde Cabo Cañaveral, unas semanas después de su gemelo, Spirit.' } },
         { date: { en: 'Jan 24, 2004', es: '24 ene 2004' }, text: { en: 'Bounces down at least 26 times inside Eagle crater.', es: 'Rebota al menos 26 veces dentro del cráter Eagle.' } },
