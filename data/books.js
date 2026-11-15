@@ -13,29 +13,6 @@
 (function () {
   'use strict';
 
-  /* ---------- helpers for placeholder content (replace later) ---------- */
-
-  function placeholderQuiz(name) {
-    var out = [];
-    for (var i = 1; i <= 10; i++) {
-      out.push({
-        q: {
-          en: 'Placeholder question ' + i + ' about ' + name + '?',
-          es: '¿Pregunta de ejemplo ' + i + ' sobre ' + name + '?'
-        },
-        // answers[correct] is the right one; order is shuffled on screen
-        answers: [
-          { en: 'Correct answer', es: 'Respuesta correcta' },
-          { en: 'Wrong answer A', es: 'Respuesta incorrecta A' },
-          { en: 'Wrong answer B', es: 'Respuesta incorrecta B' },
-          { en: 'Wrong answer C', es: 'Respuesta incorrecta C' }
-        ],
-        correct: 0
-      });
-    }
-    return out;
-  }
-
   /* ---------- UI strings ---------- */
 
   var ui = {
@@ -985,7 +962,98 @@
           '3333333333333333'
         ]
       },
-      quiz: placeholderQuiz('Opportunity')
+      quiz: [
+        {
+          q: { en: 'What happened to Opportunity in 2005?', es: '¿Qué le pasó a Opportunity en 2005?' },
+          answers: [
+            { en: 'Its wheels got stuck in sand, and engineers took six weeks to free it', es: 'Sus ruedas quedaron atrapadas en la arena y los ingenieros tardaron seis semanas en liberarlo' },
+            { en: 'Massive dust storms blocked the sunlight it needed for power', es: 'Unas gigantescas tormentas de polvo bloquearon la luz solar que necesitaba para obtener energía' },
+            { en: 'It broke the record set by Viking 1', es: 'Superó el récord establecido por la Viking 1' },
+            { en: 'It drove into Perseverance Valley', es: 'Se adentró en el Valle de la Perseverancia' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How many kilometers did Opportunity drive in total?', es: '¿Cuántos kilómetros recorrió Opportunity en total?' },
+          answers: [
+            { en: 'Over 45 kilometers', es: 'Más de 45 kilómetros' },
+            { en: 'About 1 kilometer', es: 'Apenas 1 kilómetro' },
+            { en: 'Over 15 kilometers', es: 'Más de 15 kilómetros' },
+            { en: 'Over 90 kilometers', es: 'Más de 90 kilómetros' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did NASA declare the mission over?', es: '¿Cuándo dio la NASA por concluida la misión?' },
+          answers: [
+            { en: 'February 13, 2019', es: '13 de febrero de 2019' },
+            { en: 'June 10, 2018', es: '10 de junio de 2018' },
+            { en: 'February 13, 2018', es: '13 de febrero de 2018' },
+            { en: 'January 24, 2004', es: '24 de enero de 2004' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How long was Opportunity supposed to last?', es: '¿Cuánto tiempo debía durar Opportunity?' },
+          answers: [
+            { en: '90 Martian days', es: '90 días marcianos' },
+            { en: '60 Martian days', es: '60 días marcianos' },
+            { en: '15 Martian days', es: '15 días marcianos' },
+            { en: 'Almost 15 years', es: 'Casi 15 años' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What was Opportunity\'s landing site named?', es: '¿Qué nombre recibió el lugar de aterrizaje de Opportunity?' },
+          answers: [
+            { en: 'Challenger Memorial Station', es: 'Challenger Memorial Station' },
+            { en: 'Thomas Mutch Memorial Station', es: 'Estación Conmemorativa Thomas Mutch' },
+            { en: 'Tranquility Base', es: 'Base Tranquilidad' },
+            { en: 'Spirit Memorial Station', es: 'Spirit Memorial Station' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How many times did Opportunity bounce when it hit the ground?', es: '¿Cuántas veces rebotó Opportunity al tocar la superficie?' },
+          answers: [
+            { en: 'At least 26 times', es: 'Al menos 26 veces' },
+            { en: 'At least 6 times', es: 'Al menos 6 veces' },
+            { en: 'At least 62 times', es: 'Al menos 62 veces' },
+            { en: 'At least 20 times', es: 'Al menos 20 veces' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How far was Opportunity supposed to travel?', es: '¿Qué distancia debía recorrer Opportunity?' },
+          answers: [
+            { en: 'About 1 kilometer', es: 'Apenas un kilómetro' },
+            { en: 'Over 45 kilometers', es: 'Más de 45 kilómetros' },
+            { en: 'The distance of a full marathon', es: 'La distancia de un maratón completo' },
+            { en: 'About 10 kilometers', es: 'Unos 10 kilómetros' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What was the name of Opportunity\'s twin?', es: '¿Cómo se llamaba el gemelo de Opportunity?' },
+          answers: [
+            { en: 'Spirit', es: 'Spirit' },
+            { en: 'Perseverance', es: 'Perseverance' },
+            { en: 'Curiosity', es: 'Curiosity' },
+            { en: 'Flow', es: 'Flow' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'From where did the rocket carrying Opportunity launch?', es: '¿Desde dónde despegó el cohete que transportaba a Opportunity?' },
+          answers: [
+            { en: 'Cape Canaveral, Florida', es: 'Cabo Cañaveral, Florida' },
+            { en: 'Meridiani Planum', es: 'Meridiani Planum' },
+            { en: 'Houston, Texas', es: 'Houston, Texas' },
+            { en: 'Bozeman, Montana', es: 'Bozeman, Montana' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How many wheels did Opportunity have?', es: '¿Cuántas ruedas tenía Opportunity?' },
+          answers: [
+            { en: 'Six', es: 'Seis' },
+            { en: 'Four', es: 'Cuatro' },
+            { en: 'Eight', es: 'Ocho' },
+            { en: 'Three', es: 'Tres' }
+          ], correct: 0
+        }
+      ]
     }
   ];
 
