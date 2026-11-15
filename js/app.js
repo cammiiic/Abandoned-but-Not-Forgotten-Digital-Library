@@ -2042,15 +2042,16 @@
 
   // the film, in seconds after Start
   var TL = {
-    revealFrom: 1.5, revealTo: 7.5,      // camera drifts down from the stars
-    capFrom: 6.5, capTo: 12,             // date and place
-    climbFrom: 8.5, climbTo: 13,         // down the ladder
-    stepFrom: 13.8, stepTo: 14.3,        // the first step (lands at stepTo)
-    walkFrom: 15, walkTo: 19,
-    plant: 19.3, unrollFrom: 19.9, unrollTo: 20.9, salute: 21.1,
-    riseFrom: 23.5, riseTo: 28,          // camera rises back to the stars
-    quote1: 26.5, quote2: 28.6, who: 30.6,
-    fadeFrom: 35, end: 36.6
+    revealFrom: 1, revealTo: 4.5,        // camera drifts down from the stars
+    capFrom: 3.5, capTo: 8,              // date and place
+    climbFrom: 5, climbTo: 7.8,          // down the ladder
+    stepFrom: 8.2, stepTo: 8.6,          // the first step (lands at stepTo)
+    walkFrom: 9, walkTo: 11.8,
+    plant: 12, unrollFrom: 12.4, unrollTo: 13.2, salute: 13.3,
+    riseFrom: 14.8, riseTo: 18.3,        // camera rises back to the stars
+    // Armstrong's words keep their slow pace: about 10 s from first line to the end
+    quote1: 17.8, quote2: 19.9, who: 21.9,
+    fadeFrom: 26.3, end: 27.9
   };
 
   function shouldIntro() {
