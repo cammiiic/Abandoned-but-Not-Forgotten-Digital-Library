@@ -206,14 +206,14 @@
 
   var LANG_KEY = 'abnf-lang';
 
-  // Saved choice first, then the browser language, then English
+  // Always opens in English for first-time visitors (the site is judged in
+  // English); a visitor who picks ES keeps it on their device after that.
   function initialLang() {
     try {
       var saved = localStorage.getItem(LANG_KEY);
       if (LANGS.indexOf(saved) !== -1) return saved;
     } catch (e) { /* storage blocked: fall through */ }
-    var nav = (navigator.language || 'en').toLowerCase();
-    return nav.indexOf('es') === 0 ? 'es' : 'en';
+    return 'en';
   }
 
   function setLang(lang) {
