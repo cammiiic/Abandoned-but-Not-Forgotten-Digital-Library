@@ -786,7 +786,98 @@
           '3333333333333333'
         ]
       },
-      quiz: placeholderQuiz('Viking 1')
+      quiz: [
+        {
+          q: { en: 'Why did NASA have to replace the first spacecraft with its twin, which became Viking 1?', es: '¿Por qué la NASA tuvo que reemplazar la primera nave por su gemela, que se convirtió en la Viking 1?' },
+          answers: [
+            { en: 'The spacecraft that had to go first had a battery problem', es: 'La nave espacial que debía partir primero presentó un problema en su batería' },
+            { en: 'The spacecraft that had to go first ran out of fuel', es: 'La nave espacial que debía partir primero se quedó sin combustible' },
+            { en: 'Its robot arm was broken', es: 'Su brazo robótico estaba roto' },
+            { en: 'The landing spot was too bumpy', es: 'El lugar de aterrizaje era demasiado irregular' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did the lander detach itself from the orbiter?', es: '¿Cuándo se separó el módulo de aterrizaje del orbitador?' },
+          answers: [
+            { en: 'July 20, 1976', es: '20 de julio de 1976' },
+            { en: 'July 20, 1969', es: '20 de julio de 1969' },
+            { en: 'June 1976', es: 'Junio de 1976' },
+            { en: 'August 20, 1975', es: '20 de agosto de 1975' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When did Viking 1 reach Mars?', es: '¿Cuándo llegó la Viking 1 a Marte?' },
+          answers: [
+            { en: 'June 1976', es: 'Junio de 1976' },
+            { en: 'July 20, 1976', es: '20 de julio de 1976' },
+            { en: 'August 1975', es: 'Agosto de 1975' },
+            { en: 'November 1982', es: 'Noviembre de 1982' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How cold was it on Mars before sunrise?', es: '¿Qué temperatura hacía en Marte antes del amanecer?' },
+          answers: [
+            { en: '−86 °C', es: '−86 °C' },
+            { en: '−33 °C', es: '−33 °C' },
+            { en: '−68 °C', es: '−68 °C' },
+            { en: '−186 °C', es: '−186 °C' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How did the lander start looking for signs of life on Mars?', es: '¿Cómo comenzó el módulo de aterrizaje a buscar indicios de vida en Marte?' },
+          answers: [
+            { en: 'It used its robot arm to scoop up Martian soil and place it inside its mini laboratory', es: 'Utilizó su brazo robótico para recoger una muestra de suelo marciano y depositarla en su pequeño laboratorio' },
+            { en: 'It took photos of the red dust and rocks around it', es: 'Tomó fotografías del polvo rojo y las rocas a su alrededor' },
+            { en: 'It tested Mars\' thin air as it went down', es: 'Analizó la tenue atmósfera marciana durante el descenso' },
+            { en: 'It drilled into a big boulder', es: 'Perforó una roca enorme' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'Until when did the orbiter keep working?', es: '¿Hasta cuándo siguió funcionando el orbitador?' },
+          answers: [
+            { en: 'Until 1980', es: 'Hasta 1980' },
+            { en: 'Until 1982', es: 'Hasta 1982' },
+            { en: 'Until 1976', es: 'Hasta 1976' },
+            { en: 'Until 1989', es: 'Hasta 1989' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'How many times did the orbiter orbit Mars?', es: '¿Cuántas veces orbitó Marte el orbitador?' },
+          answers: [
+            { en: '1,489 times', es: '1489 veces' },
+            { en: '1,849 times', es: '1849 veces' },
+            { en: '1,498 times', es: '1498 veces' },
+            { en: '148 times', es: '148 veces' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'When was the lander renamed the Thomas Mutch Memorial Station?', es: '¿Cuándo fue rebautizado el módulo como «Estación Conmemorativa Thomas Mutch»?' },
+          answers: [
+            { en: 'In 1982', es: 'En 1982' },
+            { en: 'In 1980', es: 'En 1980' },
+            { en: 'In 1976', es: 'En 1976' },
+            { en: 'In 1975', es: 'En 1975' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'Why was the lander renamed the Thomas Mutch Memorial Station?', es: '¿Por qué el módulo fue rebautizado como «Estación Conmemorativa Thomas Mutch»?' },
+          answers: [
+            { en: 'To honor the leader of the Viking camera team, who had passed away', es: 'En honor al jefe del equipo de cámaras de la misión Viking, quien había fallecido' },
+            { en: 'To honor the first astronaut who walked on Mars', es: 'En honor al primer astronauta que caminó en Marte' },
+            { en: 'To honor the student who won a naming contest', es: 'En honor al estudiante que ganó un concurso de nombres' },
+            { en: 'To honor the engineer who fixed its battery', es: 'En honor al ingeniero que arregló su batería' }
+          ], correct: 0
+        },
+        {
+          q: { en: 'What caused the lander to stop answering?', es: '¿Qué provocó que el módulo de aterrizaje dejara de responder?' },
+          answers: [
+            { en: 'Someone on Earth sent the wrong command to it by accident', es: 'Alguien en la Tierra envió por error un comando incorrecto' },
+            { en: 'It ran out of fuel', es: 'Se quedó sin combustible' },
+            { en: 'A dust storm blocked its sunlight', es: 'Una tormenta de polvo bloqueó la luz solar' },
+            { en: 'Its battery problem came back', es: 'Volvió a fallar su batería' }
+          ], correct: 0
+        }
+      ]
     },
 
     {
